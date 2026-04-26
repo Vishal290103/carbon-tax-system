@@ -32,7 +32,7 @@ export function ValidatorDashboard() {
   const [tokenBalance, setTokenBalance] = useState<string>('0');
   const [ethBalance, setEthBalance] = useState<string>('0');
   const [validatorStats, setValidatorStats] = useState<ValidatorStats | null>(null);
-  const [activeValidators, setActiveValidators] = useState<string[]>([]);
+  // const [activeValidators, setActiveValidators] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stakeAmount, setStakeAmount] = useState<string>('1000');
   const [isStaking, setIsStaking] = useState(false);
@@ -67,7 +67,7 @@ export function ValidatorDashboard() {
       const systemStats = await web3Service.getSystemStats();
       const validators = await web3Service.getActiveValidators();
       
-      setActiveValidators(validators);
+      // setActiveValidators(validators);
       
       // Calculate pending rewards
       const pendingRewards = await web3Service.calculateReward(userAddress);
@@ -203,6 +203,7 @@ export function ValidatorDashboard() {
     }
   };
 
+  /* 
   const handleBuyTokens = async () => {
     try {
       const success = await web3Service.buyTokensWithETH('2000');
@@ -219,6 +220,7 @@ export function ValidatorDashboard() {
       console.error('Buy tokens error:', error);
     }
   };
+  */
 
   const handleDemoTokens = () => {
     setDemoMode(true);

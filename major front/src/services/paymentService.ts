@@ -89,7 +89,7 @@ export class PaymentService {
   /**
    * Razorpay payment integration (placeholder)
    */
-  private async processRazorpayPayment(paymentDetails: PaymentDetails): Promise<PaymentResult> {
+  private async processRazorpayPayment(_paymentDetails: PaymentDetails): Promise<PaymentResult> {
     // TODO: Implement Razorpay integration
     // 1. Create Razorpay order
     // 2. Open Razorpay checkout
@@ -102,7 +102,7 @@ export class PaymentService {
   /**
    * Paytm payment integration (placeholder)
    */
-  private async processPaytmPayment(paymentDetails: PaymentDetails): Promise<PaymentResult> {
+  private async processPaytmPayment(_paymentDetails: PaymentDetails): Promise<PaymentResult> {
     // TODO: Implement Paytm integration
     // 1. Create Paytm transaction token
     // 2. Open Paytm checkout
@@ -115,7 +115,7 @@ export class PaymentService {
   /**
    * PhonePe payment integration (placeholder)
    */
-  private async processPhonePePayment(paymentDetails: PaymentDetails): Promise<PaymentResult> {
+  private async processPhonePePayment(_paymentDetails: PaymentDetails): Promise<PaymentResult> {
     // TODO: Implement PhonePe integration
     // 1. Create PhonePe payment request
     // 2. Redirect to PhonePe

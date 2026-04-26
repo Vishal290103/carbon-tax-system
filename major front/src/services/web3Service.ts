@@ -213,7 +213,7 @@ export class Web3Service {
     try {
       const balance = await this.contract.balanceOf(this.userAddress);
       return ethers.formatEther(balance);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting token balance:', error);
       if (error.message?.includes('could not detect network') || error.message?.includes('network changed')) {
         toast.error('Network connection issue. Please check your MetaMask network and try again.');
@@ -240,7 +240,7 @@ export class Web3Service {
       
       toast.success('Product added successfully!', { id: 'add-product' });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding product:', error);
       toast.error('Failed to add product', { id: 'add-product' });
       return false;
@@ -261,7 +261,7 @@ export class Web3Service {
         manufacturer: product.manufacturer,
         isActive: product.isActive
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting product:', error);
       return null;
     }
@@ -291,7 +291,7 @@ export class Web3Service {
 
     toast.success(`Purchase successful!`, { id: 'purchase' });
     return receipt.hash; // return transaction hash
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error purchasing product:', error);
     toast.error('Purchase failed', { id: 'purchase' });
     return null;
@@ -304,9 +304,9 @@ export class Web3Service {
    */
   async recordTransactionOnBlockchain(
     productId: number, 
-    inrAmount: number, 
-    inrCarbonTax: number,
-    paymentTransactionId: string
+    _inrAmount: number, 
+    _inrCarbonTax: number,
+    _paymentTransactionId: string
   ): Promise<string | null> {
     if (!this.contract || !this.signer) {
       throw new Error('Blockchain connection required - please connect your wallet');
@@ -397,7 +397,7 @@ export class Web3Service {
       
       toast.success('Tokens staked successfully!', { id: 'stake' });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error staking tokens:', error);
       
       // More specific error handling
