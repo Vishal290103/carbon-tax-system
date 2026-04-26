@@ -319,6 +319,9 @@ export class Web3Service {
         throw new Error('Product not found');
       }
 
+      // Get user balance
+      const balance = await this.provider!.getBalance(this.userAddress);
+
       // We use a tiny symbolic amount (0.00001 ETH) for the blockchain record 
       // This ensures transparency without requiring the user to have huge amounts of test ETH
       const symbolicAmount = '0.00001'; 
