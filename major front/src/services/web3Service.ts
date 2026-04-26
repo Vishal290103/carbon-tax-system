@@ -319,14 +319,11 @@ export class Web3Service {
         throw new Error('Product not found');
       }
 
-      // Check if user has sufficient ETH balance for a SYMBOLIC record + gas
-      const balance = await this.provider!.getBalance(this.userAddress);
-      
-      // We use a tiny symbolic amount (0.0001 ETH) for the blockchain record 
+      // We use a tiny symbolic amount (0.00001 ETH) for the blockchain record 
       // This ensures transparency without requiring the user to have huge amounts of test ETH
-      const symbolicAmount = '0.0001'; 
+      const symbolicAmount = '0.00001'; 
       const symbolicAmountInWei = ethers.parseEther(symbolicAmount);
-      const gasEstimate = ethers.parseEther('0.005'); // Lower gas estimate
+      const gasEstimate = ethers.parseEther('0.005'); 
       const totalRequired = symbolicAmountInWei + gasEstimate;
       
       if (balance < totalRequired) {
@@ -335,10 +332,9 @@ export class Web3Service {
       }
 
       // Execute symbolic purchase on blockchain for transparency
-      // The real payment happens via the INR gateway
       const tx = await this.contract.purchaseProduct(productId, { 
         value: symbolicAmountInWei,
-        gasLimit: 200000 
+        gasLimit: 300000 
       });
 
       console.log('Blockchain transaction submitted to contract, waiting for confirmation...');
