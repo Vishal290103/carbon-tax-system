@@ -612,18 +612,12 @@ export class Web3Service {
       };
     } catch (error: any) {
       console.error('Error getting system stats:', error);
-      if (error.message?.includes('could not decode result data')) {
-        console.warn('Contract not deployed or wrong network. Please ensure Hardhat node is running on localhost:8545');
-      } else if (error.message?.includes('could not detect network')) {
-        console.warn('Network connection issue. Please check MetaMask connection.');
-      }
       return null;
     }
   }
 
   async getActiveValidators(): Promise<string[]> {
     if (!this.contract) return [];
-
     try {
       return await this.contract.getActiveValidators();
     } catch (error: any) {
