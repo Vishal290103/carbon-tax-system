@@ -17,6 +17,7 @@ public class GreenProject {
     private int progress;
     private String image;
     private String type;
+    private String location;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -33,4 +34,6 @@ public class GreenProject {
     public void setImage(String image) { this.image = image; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 }

@@ -46,7 +46,7 @@ public class DataInitializer {
                 gp1.setType("Reforestation");
                 gp1.setCost(500000.0);
                 gp1.setDescription("Planting 10,000 native trees.");
-                gp1.setProgress(75.0);
+                gp1.setProgress(75);
                 gp1.setLocation("Karnataka, India");
                 gp1.setImage("https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=2026");
                 projectRepo.save(gp1);
@@ -56,7 +56,7 @@ public class DataInitializer {
                 gp2.setType("Solar Energy");
                 gp2.setCost(800000.0);
                 gp2.setDescription("Providing clean energy to 20 schools.");
-                gp2.setProgress(40.0);
+                gp2.setProgress(40);
                 gp2.setLocation("Rajasthan, India");
                 gp2.setImage("https://images.unsplash.com/photo-1509391366360-fe5bb58583bb?auto=format&fit=crop&q=80&w=2070");
                 projectRepo.save(gp2);
