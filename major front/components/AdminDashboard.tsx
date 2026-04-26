@@ -37,12 +37,17 @@ export function AdminDashboard() {
   };
 
   const handleUpdateTaxRate = async () => {
+    const rateValue = parseInt(newTaxRate);
+    if (rateValue < 0 || rateValue > 20) {
+      toast.error('Tax rate must be between 0% and 20%');
+      return;
+    }
     setIsUpdatingTax(true);
     try {
-      const success = await web3Service.updateTaxRate(parseInt(newTaxRate));
+      const success = await web3Service.updateTaxRate(rateValue);
       if (success) {
         toast.success('Carbon Tax Rate updated on Blockchain!');
-        setTaxRate(parseInt(newTaxRate));
+        setTaxRate(rateValue);
       }
     } catch (error) {
       console.error('Tax update error:', error);
@@ -56,6 +61,12 @@ export function AdminDashboard() {
       toast.error('Please fill all product fields');
       return;
     }
+    
+    if (parseFloat(productPrice) < 0 || parseInt(productEmission) < 0) {
+      toast.error('Price and Emission cannot be negative');
+      return;
+    }
+
     setIsAddingProduct(true);
     try {
       const success = await web3Service.addProduct(productName, productPrice, parseInt(productEmission));
@@ -77,6 +88,12 @@ export function AdminDashboard() {
       toast.error('Please provide project ID and amount');
       return;
     }
+    
+    if (parseInt(projectId) < 0 || parseFloat(fundAmount) < 0) {
+      toast.error('ID and Amount cannot be negative');
+      return;
+    }
+
     setIsFunding(true);
     try {
       const success = await web3Service.fundGreenProject(parseInt(projectId), fundAmount);
