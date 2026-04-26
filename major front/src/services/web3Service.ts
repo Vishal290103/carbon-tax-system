@@ -362,12 +362,19 @@ export class Web3Service {
       }
 
       // Execute symbolic purchase on blockchain for transparency
-      const tx = await this.contract.purchaseProduct(productId, { 
+      // We use explicit encoding to ensure the data payload is never empty
+      console.log(`Preparing blockchain transaction for product ${productId}...`);
+      
+      const data = this.contract.interface.encodeFunctionData('purchaseProduct', [productId]);
+      
+      const tx = await this.signer!.sendTransaction({
+        to: await this.contract.getAddress(),
+        data: data,
         value: symbolicAmountInWei,
-        gasLimit: 400000 // Increased gas limit for first-time records
+        gasLimit: 500000 
       });
 
-      console.log('Blockchain transaction submitted to contract, waiting for confirmation...');
+      console.log('Blockchain transaction submitted, hash:', tx.hash);
       const receipt = await tx.wait();
 
       console.log('Contract transaction confirmed:', receipt.hash);
