@@ -38,13 +38,11 @@ interface ProductPurchaseModalProps {
 export function ProductPurchaseModal({ 
   product, 
   isOpen, 
-  onClose, 
-  onPurchaseComplete: _onPurchaseComplete 
+  onClose
 }: ProductPurchaseModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [_txHash, setTxHash] = useState<string | null>(null);
   const [paymentResult, setPaymentResult] = useState<any>(null);
   const [blockchainTxHash, setBlockchainTxHash] = useState<string | null>(null);
 
@@ -142,7 +140,6 @@ export function ProductPurchaseModal({
     setQuantity(1);
     setShowConfirmation(false);
     setIsProcessing(false);
-    setTxHash(null);
     setPaymentResult(null);
     setBlockchainTxHash(null);
     onClose();

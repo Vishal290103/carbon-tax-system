@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 
 interface MockTokenFaucetProps {
   onTokensReceived: () => void;
-  _currentBalance: string;
+  currentBalance: string;
 }
 
 export function MockTokenFaucet({ onTokensReceived, currentBalance: _currentBalance }: MockTokenFaucetProps) {
@@ -12,66 +12,67 @@ export function MockTokenFaucet({ onTokensReceived, currentBalance: _currentBala
 
   const handleMockTokens = async () => {
     setIsRequesting(true);
-    
     try {
-      // Simulate a delay for realistic experience
-      toast.loading('Requesting test tokens from mock faucet...', { id: 'mock-tokens' });
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Simulate successful token reception
-      toast.success('🎉 Successfully received 2000 CTT tokens! (Demo mode)', { 
-        id: 'mock-tokens',
-        duration: 3000
-      });
-      
-      // Call the callback to refresh data
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      toast.success('Demo tokens added to your account!');
       onTokensReceived();
-      
     } catch (error) {
-      toast.error('Mock faucet failed', { id: 'mock-tokens' });
+      console.error('Error requesting tokens:', error);
+      toast.error('Failed to request demo tokens');
     } finally {
       setIsRequesting(false);
     }
   };
 
   return (
-    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-      <div className="flex items-center space-x-2 mb-3">
-        <Coins className="h-5 w-5 text-green-600" />
-        <h4 className="font-medium text-green-800">Get CTT Tokens</h4>
+    <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-xl p-6 shadow-sm">
+      <div className="flex items-center space-x-3 mb-4">
+        <div className="p-2 bg-indigo-100 rounded-lg">
+          <Coins className="h-6 w-6 text-indigo-600" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-gray-900">Need Demo Tokens?</h3>
+          <p className="text-sm text-gray-600">Get free CTT tokens for testing the system</p>
+        </div>
       </div>
       
-      <p className="text-sm text-green-700 mb-4">
-        Get 2000 CTT tokens instantly to test validator functionality. This is the easiest way to get started!
-      </p>
-      
-      <button
-        onClick={handleMockTokens}
-        disabled={isRequesting}
-        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg text-sm transition-colors"
-      >
-        {isRequesting ? (
-          <div className="flex items-center justify-center space-x-2">
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <span>Requesting...</span>
+      <div className="space-y-4">
+        <div className="p-3 bg-white bg-opacity-60 rounded-lg border border-indigo-50">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-500">Available in Faucet</span>
+            <span className="font-medium text-indigo-700">50,000 CTT</span>
           </div>
-        ) : (
-          <div className="flex items-center justify-center space-x-2">
-            <Coins className="h-4 w-4" />
-            <span>🎆 Get 2000 CTT Tokens (Recommended)</span>
-          </div>
-        )}
-      </button>
-      
-      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
-        <div className="flex items-start space-x-2">
-          <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5" />
-          <div className="text-xs text-blue-700">
-            <p className="font-medium mb-1">🎆 Instant Tokens:</p>
-            <p>This immediately gives you test tokens to explore the validator features. Perfect for testing staking, rewards, and validator status!</p>
+          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+            <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: '85%' }}></div>
           </div>
         </div>
+
+        <button
+          onClick={handleMockTokens}
+          disabled={isRequesting}
+          className={`w-full py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-all ${
+            isRequesting 
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+              : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg active:scale-[0.98]'
+          }`}
+        >
+          {isRequesting ? (
+            <>
+              <div className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-gray-600 rounded-full"></div>
+              <span>Processing...</span>
+            </>
+          ) : (
+            <>
+              <CheckCircle className="h-5 w-5" />
+              <span>Request 1000 Test CTT</span>
+            </>
+          )}
+        </button>
+        
+        <p className="text-xs text-center text-gray-400">
+          Demo tokens have no real-world value and are for testing only.
+        </p>
       </div>
     </div>
   );

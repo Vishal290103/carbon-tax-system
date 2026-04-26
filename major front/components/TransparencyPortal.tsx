@@ -187,6 +187,7 @@ export function TransparencyPortal() {
     return paymentService.formatINR(amount);
   };
   
+  /*
   const _formatEthCurrency = (amount: number) => {
     // Convert ETH amount to INR for display (for blockchain transactions)
     const inrAmount = paymentService.convertEthToINR(amount);
@@ -202,6 +203,7 @@ export function TransparencyPortal() {
       minute: '2-digit'
     });
   };
+  */
 
   const getTransactionIcon = (_productId: number) => {
     // This is a placeholder. You might want to have a way to get the product category.

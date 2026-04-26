@@ -78,6 +78,7 @@ export default function App() {
   };
 
   const loadProducts = async () => {
+    setIsLoadingProducts(true);
     try {
       // Determine number of products from system stats if available, else fallback
       const stats = await web3Service.getSystemStats();
@@ -102,6 +103,8 @@ export default function App() {
       setProducts(fetched);
     } catch (error) {
       console.error('Error loading products:', error);
+    } finally {
+      setIsLoadingProducts(false);
     }
   };
 
@@ -136,31 +139,6 @@ export default function App() {
     
     // Force a re-render to update transparency portal
     window.dispatchEvent(new CustomEvent('transactionCompleted'));
-  };
-
-  const handleStakeTokens = async () => {
-    if (!isWalletConnected) {
-      toast.error('Please connect your wallet first');
-      return;
-    }
-
-    const success = await web3Service.stakeTokens('1000');
-    if (success) {
-      await loadBalances();
-      await loadSystemStats();
-    }
-  };
-
-  const handleRequestTokens = async () => {
-    if (!isWalletConnected) {
-      toast.error('Please connect your wallet first');
-      return;
-    }
-
-    const success = await web3Service.requestTokens('2000'); // Request 2000 tokens
-    if (success) {
-      await loadBalances();
-    }
   };
 
   const formatAddress = (address: string) => {

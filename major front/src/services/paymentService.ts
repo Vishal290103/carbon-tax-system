@@ -48,9 +48,7 @@ export class PaymentService {
       }
 
       // TODO: Implement real Indian payment gateway integration
-      // return await this.processRazorpayPayment(paymentDetails);
-      // return await this.processPaytmPayment(paymentDetails);
-      // return await this.processPhonePePayment(paymentDetails);
+      // Real implementations would go here
       
       throw new Error('Real payment processing not implemented yet');
     } catch (error) {
@@ -84,45 +82,6 @@ export class PaymentService {
     });
 
     return result;
-  }
-
-  /**
-   * Razorpay payment integration (placeholder)
-   */
-  private async _processRazorpayPayment(_paymentDetails: PaymentDetails): Promise<PaymentResult> {
-    // TODO: Implement Razorpay integration
-    // 1. Create Razorpay order
-    // 2. Open Razorpay checkout
-    // 3. Verify payment
-    // 4. Return result
-    
-    throw new Error('Razorpay integration not implemented');
-  }
-
-  /**
-   * Paytm payment integration (placeholder)
-   */
-  private async _processPaytmPayment(_paymentDetails: PaymentDetails): Promise<PaymentResult> {
-    // TODO: Implement Paytm integration
-    // 1. Create Paytm transaction token
-    // 2. Open Paytm checkout
-    // 3. Verify transaction status
-    // 4. Return result
-    
-    throw new Error('Paytm integration not implemented');
-  }
-
-  /**
-   * PhonePe payment integration (placeholder)
-   */
-  private async _processPhonePePayment(_paymentDetails: PaymentDetails): Promise<PaymentResult> {
-    // TODO: Implement PhonePe integration
-    // 1. Create PhonePe payment request
-    // 2. Redirect to PhonePe
-    // 3. Handle callback
-    // 4. Return result
-    
-    throw new Error('PhonePe integration not implemented');
   }
 
   /**

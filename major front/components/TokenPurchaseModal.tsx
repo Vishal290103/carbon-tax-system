@@ -69,17 +69,6 @@ export function TokenPurchaseModal({ isOpen, onClose, onPurchaseComplete }: Toke
     setEthAmount(ethRequired.toFixed(6));
   };
 
-  /*
-  const calculateTokenAmount = () => {
-    if (!ethAmount || !exchangeRate) return;
-    
-    const eth = parseFloat(ethAmount);
-    const rate = parseFloat(exchangeRate.ethToTokenRate); // 1000 CTT per 1 ETH
-    const tokensReceived = eth * rate;
-    setTokenAmount(tokensReceived.toString());
-  };
-  */
-
   const handleTokenAmountChange = (value: string) => {
     setTokenAmount(value);
   };
