@@ -341,13 +341,13 @@ export class Web3Service {
         toast.success('Product successfully registered on blockchain!', { id: 'sync' });
       }
 
-      // 3. Now perform the REAL Smart Contract Purchase
-      // We send 0.001 ETH which is more than enough to cover symbolic price + tax
+      // Execute the "Professional Smart-Sync" Blockchain Record
+      // We use a tiny amount (0.00001 ETH) to save your test ETH balance
       console.log(`Executing authenticated purchase on Smart Contract for ID: ${productId}`);
       
       const tx = await this.contract.purchaseProduct(productId, { 
-        value: ethers.parseEther('0.0005'),
-        gasLimit: 300000
+        value: ethers.parseEther('0.00001'),
+        gasLimit: 150000 // Optimized gas limit
       });
 
       console.log('Contract transaction submitted! Hash:', tx.hash);
