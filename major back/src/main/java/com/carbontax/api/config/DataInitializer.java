@@ -4,18 +4,30 @@ import com.carbontax.api.product.Product;
 import com.carbontax.api.product.ProductRepository;
 import com.carbontax.api.project.GreenProject;
 import com.carbontax.api.project.GreenProjectRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class DataInitializer {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DataInitializer.class);
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     @Bean
     public CommandLineRunner initData(ProductRepository productRepo, GreenProjectRepository projectRepo) {
         return args -> {
             log.info("Checking if data initialization is required...");
+            
+            // Clean up existing data to ensure images and metadata are fresh
+            log.info("Cleaning up existing data for fresh initialization...");
+            try {
+                productRepo.deleteAll();
+                projectRepo.deleteAll();
+            } catch (Exception e) {
+                log.warn("Could not delete existing data, might be due to constraints: {}", e.getMessage());
+            }
+
             try {
                 if (productRepo.count() == 0) {
                     log.info("Initializing products...");

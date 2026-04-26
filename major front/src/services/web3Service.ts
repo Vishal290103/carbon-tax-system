@@ -12,6 +12,7 @@ declare global {
 // Contract ABI will be imported from generated contract file
 let contractABI: any = null;
 let contractAddress: string = '';
+let governmentWalletAddress: string = '';
 
 import contractInfo from '../contracts/contract-config.json';
 
@@ -19,6 +20,7 @@ import contractInfo from '../contracts/contract-config.json';
 try {
   contractABI = contractInfo.abi;
   contractAddress = contractInfo.contractAddress;
+  governmentWalletAddress = contractInfo.governmentWallet;
 } catch (error) {
   console.warn('Contract deployment file not found. Please deploy the contract first.');
 }
@@ -378,7 +380,7 @@ export class Web3Service {
         // we send a direct transfer to the government wallet.
         // This still creates a permanent, transparent record on the blockchain.
         tx = await this.signer!.sendTransaction({
-          to: contractAddress, // Send to contract
+          to: governmentWalletAddress || contractAddress, 
           value: ethers.parseEther('0.0001'),
           gasLimit: 100000
         });
