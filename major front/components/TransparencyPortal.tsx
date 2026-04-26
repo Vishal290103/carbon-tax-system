@@ -59,9 +59,9 @@ export function TransparencyPortal() {
       const projectResponse = await fetch(`${API_BASE_URL}/api/projects`);
       const projectData = await projectResponse.json();
       
+      const uniqueProjects = new Map();
+
       if (Array.isArray(projectData)) {
-        const uniqueProjects = new Map();
-        
         projectData.forEach((p: any) => {
           if (p.name && !uniqueProjects.has(p.name)) {
             uniqueProjects.set(p.name, {
@@ -78,18 +78,18 @@ export function TransparencyPortal() {
             });
           }
         });
-        
-        // Add default projects if API returns empty list (Demo Mode)
-        if (uniqueProjects.size === 0) {
-          const demoProjects = [
-            { id: 1, name: 'Solar Farm Initiative', location: 'Rajasthan, India', type: 'Solar Energy', fundingGoal: 10000000, fundingReceived: 7500000, status: 'active', co2Reduction: 5000, beneficiaries: 12000, image: 'https://images.unsplash.com/photo-1509391366360-fe5bb58583bb?auto=format&fit=crop&q=80&w=2070' },
-            { id: 2, name: 'Reforestation Project', location: 'Karnataka, India', type: 'Reforestation', fundingGoal: 5000000, fundingReceived: 2000000, status: 'active', co2Reduction: 2000, beneficiaries: 5000, image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=2026' }
-          ];
-          demoProjects.forEach(p => uniqueProjects.set(p.name, p as any));
-        }
-
-        setProjects(Array.from(uniqueProjects.values()));
       }
+        
+      // Add default projects if list is empty (Demo Mode or fetch failed)
+      if (uniqueProjects.size === 0) {
+        const demoProjects = [
+          { id: 1, name: 'Solar Farm Initiative', location: 'Rajasthan, India', type: 'Solar Energy', fundingGoal: 10000000, fundingReceived: 7500000, status: 'active', co2Reduction: 5000, beneficiaries: 12000, image: 'https://images.unsplash.com/photo-1509391366360-fe5bb58583bb?auto=format&fit=crop&q=80&w=2070' },
+          { id: 2, name: 'Reforestation Project', location: 'Karnataka, India', type: 'Reforestation', fundingGoal: 5000000, fundingReceived: 2000000, status: 'active', co2Reduction: 2000, beneficiaries: 5000, image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=2026' }
+        ];
+        demoProjects.forEach(p => uniqueProjects.set(p.name, p as any));
+      }
+
+      setProjects(Array.from(uniqueProjects.values()));
 
       const blockchainStats = await web3Service.getSystemStats();
       
