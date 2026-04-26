@@ -66,26 +66,37 @@ public class Web3Service {
 
     @PostConstruct
     public void init() {
+        log.info("Initializing Web3Service...");
         try {
             // Initialize Web3j connection
+            log.info("Connecting to blockchain RPC: {}", blockchainRpcUrl);
             this.web3j = Web3j.build(new HttpService(blockchainRpcUrl));
-            log.info("Connected to blockchain at: {}", blockchainRpcUrl);
 
             // Initialize credentials if private key is provided
-            if (!privateKey.isEmpty()) {
-                this.credentials = Credentials.create(privateKey);
-                this.transactionManager = new RawTransactionManager(web3j, credentials, chainId);
-                log.info("Wallet address: {}", credentials.getAddress());
+            if (privateKey != null && !privateKey.trim().isEmpty()) {
+                try {
+                    // Remove 0x prefix if present
+                    String cleanKey = privateKey.trim();
+                    if (cleanKey.startsWith("0x")) {
+                        cleanKey = cleanKey.substring(2);
+                    }
+                    this.credentials = Credentials.create(cleanKey);
+                    this.transactionManager = new RawTransactionManager(web3j, credentials, chainId);
+                    log.info("Web3 credentials initialized for address: {}", credentials.getAddress());
+                } catch (Exception e) {
+                    log.error("Failed to initialize credentials from private key. Check if private key is valid.", e);
+                }
+            } else {
+                log.warn("No private key provided. Some blockchain operations will be unavailable.");
             }
 
             // Initialize gas provider
             this.gasProvider = new DefaultGasProvider();
-
-            // Test connection
-            String version = web3j.web3ClientVersion().send().getWeb3ClientVersion();
-            log.info("Web3 client version: {}", version);
+            
+            log.info("Web3Service initialization completed successfully.");
         } catch (Exception e) {
-            log.error("Failed to initialize Web3 service", e);
+            log.error("Critical error during Web3Service initialization", e);
+            // We still don't throw to allow the application to start
         }
     }
 
