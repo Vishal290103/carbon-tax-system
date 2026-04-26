@@ -10,10 +10,12 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class DataInitializer {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DataInitializer.class);
 
     @Bean
     public CommandLineRunner initData(ProductRepository productRepo, GreenProjectRepository projectRepo) {
         return args -> {
+            log.info("Checking if data initialization is required...");
             if (productRepo.count() == 0) {
                 Product p1 = new Product();
                 p1.setName("Smartphone Pro");
