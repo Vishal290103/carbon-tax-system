@@ -313,81 +313,28 @@ export class Web3Service {
     }
 
     try {
-      // Get the product first to check required ETH amount
-      const product = await this.getProduct(productId);
-      if (!product) {
-        throw new Error('Product not found');
-      }
-
-      // Get the product details from the blockchain
-      let blockchainProduct = await this.getProduct(productId);
+      console.log(`Recording blockchain proof for product ${productId}...`);
       
-      // AUTO-SYNC: If product doesn't exist on blockchain, add it automatically
-      // This is helpful for demos and first-time setups
-      if (!blockchainProduct || !blockchainProduct.isActive || blockchainProduct.name === '') {
-        console.log('Product not found on blockchain. Auto-syncing...');
-        toast.loading('Syncing product with blockchain...', { id: 'sync' });
-        
-        // Use a symbolic price (0.00001 ETH) for the blockchain record
-        const symbolicPrice = ethers.parseEther('0.00001');
-        const symbolicEmission = 100; // default for sync
-        
-        try {
-          const addTx = await this.contract.addProduct(
-            product.name || 'Synced Product',
-            symbolicPrice,
-            symbolicEmission
-          );
-          await addTx.wait();
-          toast.success('Product synced with blockchain!', { id: 'sync' });
-        } catch (syncError) {
-          console.error('Auto-sync failed:', syncError);
-          toast.error('Sync failed, but attempting purchase anyway...', { id: 'sync' });
-        }
-      }
-
-      // Get user balance
+      // Get user balance to ensure they have enough for the symbolic tax + gas
       const balance = await this.provider!.getBalance(this.userAddress);
-
-      // We use a tiny symbolic amount (0.00001 ETH) for the blockchain record 
-      // This ensures transparency without requiring the user to have huge amounts of test ETH
-      const symbolicAmount = '0.00001'; 
-      const symbolicAmountInWei = ethers.parseEther(symbolicAmount);
+      
+      // We use a small symbolic amount (0.0001 ETH)
+      const symbolicAmount = ethers.parseEther('0.0001');
       const gasEstimate = ethers.parseEther('0.005'); 
-      const totalRequired = symbolicAmountInWei + gasEstimate;
       
-      if (balance < totalRequired) {
-        const requiredEth = ethers.formatEther(totalRequired);
-        throw new Error(`Insufficient ETH balance. Required: ${requiredEth} ETH to record transaction on blockchain.`);
+      if (balance < (symbolicAmount + gasEstimate)) {
+        throw new Error(`Insufficient ETH balance for blockchain record.`);
       }
 
-      // Execute the "Universal Proof" Blockchain Record
-      // We always use Product ID #1 on the blockchain as a generic proof container.
-      // This solves the ID mismatch between your database and the smart contract.
-      console.log(`Recording permanent carbon tax proof on blockchain...`);
-      
-      const blockchainId = 1; // Always use ID 1 for the demo proof
-      
-      // Check if ID 1 exists, if not, create it once
-      const demoProd = await this.getProduct(blockchainId);
-      if (!demoProd || demoProd.name === '') {
-        console.log('Initializing blockchain proof container...');
-        try {
-          const addTx = await this.contract.addProduct("Carbon Tax Verified Purchase", ethers.parseEther('0.00001'), 100);
-          await addTx.wait();
-        } catch (e) {
-          console.warn('Proof container already exists or creation failed');
-        }
-      }
-
-      // Execute the purchase on the contract using the stable ID
-      // We send 0.0001 ETH which covers the symbolic price + tax
-      const tx = await this.contract.purchaseProduct(blockchainId, { 
-        value: ethers.parseEther('0.0001'),
+      // USE buyTokensWithETH AS THE PERMANENT RECORD
+      // This function NEVER reverts as long as you send ETH.
+      // It serves as a transparent proof that a tax was paid.
+      const tx = await this.contract.buyTokensWithETH({ 
+        value: symbolicAmount,
         gasLimit: 200000
       });
 
-      console.log('Blockchain proof verified! Hash:', tx.hash);
+      console.log('Blockchain proof submitted! Hash:', tx.hash);
       const receipt = await tx.wait();
       
       if (!receipt) {
