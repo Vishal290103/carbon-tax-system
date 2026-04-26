@@ -74,11 +74,20 @@ export function TransparencyPortal() {
               status: p.progress >= 100 ? 'completed' : 'active',
               co2Reduction: p.cost / 1000,
               beneficiaries: p.cost / 100,
-              image: p.image
+              image: p.image || 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2071&auto=format&fit=crop'
             });
           }
         });
         
+        // Add default projects if API returns empty list (Demo Mode)
+        if (uniqueProjects.size === 0) {
+          const demoProjects = [
+            { id: 1, name: 'Solar Farm Initiative', location: 'Rajasthan, India', type: 'Solar Energy', fundingGoal: 10000000, fundingReceived: 7500000, status: 'active', co2Reduction: 5000, beneficiaries: 12000, image: 'https://images.unsplash.com/photo-1509391366360-fe5bb58583bb?auto=format&fit=crop&q=80&w=2070' },
+            { id: 2, name: 'Reforestation Project', location: 'Karnataka, India', type: 'Reforestation', fundingGoal: 5000000, fundingReceived: 2000000, status: 'active', co2Reduction: 2000, beneficiaries: 5000, image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=2026' }
+          ];
+          demoProjects.forEach(p => uniqueProjects.set(p.name, p as any));
+        }
+
         setProjects(Array.from(uniqueProjects.values()));
       }
 

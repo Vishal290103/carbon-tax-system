@@ -102,11 +102,21 @@ export default function App() {
               category: p.category || 'General',
               description: p.description,
               manufacturer: p.manufacturer || 'Verified Manufacturer',
-              image: p.image
+              image: p.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1999&auto=format&fit=crop'
             });
           }
         });
         
+        // Add default products if API returns empty list (Demo Mode)
+        if (uniqueProducts.size === 0) {
+          const demoProducts = [
+            { id: 1, name: 'Smartphone Pro', basePrice: 0.25, carbonTax: 0.0125, co2Emission: 100, category: 'Electronics', image: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?q=80&w=1965&auto=format&fit=crop' },
+            { id: 2, name: 'Laptop Ultra', basePrice: 0.40, carbonTax: 0.02, co2Emission: 300, category: 'Electronics', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?q=80&w=2071&auto=format&fit=crop' },
+            { id: 3, name: 'Air Conditioner', basePrice: 0.175, carbonTax: 0.01, co2Emission: 400, category: 'Home Goods', image: 'https://images.unsplash.com/photo-1627992499295-80271b531b69?q=80&w=1964&auto=format&fit=crop' }
+          ];
+          demoProducts.forEach(p => uniqueProducts.set(p.name, p));
+        }
+
         setProducts(Array.from(uniqueProducts.values()));
       }
     } catch (error) {
