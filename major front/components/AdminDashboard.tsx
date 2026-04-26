@@ -11,7 +11,7 @@ export function AdminDashboard() {
   const [isUpdatingTax, setIsUpdatingTax] = useState(false);
   
   const [productName, setProductName] = useState('');
-  const [productPrice, setProductPrice] = useState('');
+  const [productPriceINR, setProductPriceINR] = useState('');
   const [productEmission, setProductEmission] = useState('');
   const [isAddingProduct, setIsAddingProduct] = useState(false);
 
@@ -64,23 +64,24 @@ export function AdminDashboard() {
   };
 
   const handleAddProduct = async () => {
-    if (!productName || !productPrice || !productEmission) {
+    if (!productName || !productPriceINR || !productEmission) {
       toast.error('Please fill all product fields');
       return;
     }
     
-    if (parseFloat(productPrice) <= 0 || parseInt(productEmission) < 0) {
+    const ethPrice = getEthFromINR(productPriceINR);
+    if (parseFloat(ethPrice) <= 0 || parseInt(productEmission) < 0) {
       toast.error('Price must be greater than zero and Emission cannot be negative');
       return;
     }
 
     setIsAddingProduct(true);
     try {
-      const success = await web3Service.addProduct(productName, productPrice, parseInt(productEmission));
+      const success = await web3Service.addProduct(productName, ethPrice, parseInt(productEmission));
       if (success) {
-        toast.success('New product registered on Blockchain!');
+        toast.success(`'${productName}' registered on Blockchain with price ₹${productPriceINR}!`);
         setProductName('');
-        setProductPrice('');
+        setProductPriceINR('');
         setProductEmission('');
       }
     } catch (error) {
@@ -248,19 +249,26 @@ export function AdminDashboard() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Base Price (ETH)</label>
-                <input 
-                  type="number" 
-                  min="0.0001"
-                  step="0.001"
-                  value={productPrice}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === '' || parseFloat(val) >= 0) setProductPrice(val);
-                  }}
-                  placeholder="e.g. 0.2"
-                  className="w-full px-4 py-2 border rounded-lg outline-none"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Base Price (INR)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-gray-500">₹</span>
+                  <input 
+                    type="number" 
+                    min="1"
+                    placeholder="e.g. 50000"
+                    value={productPriceINR}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || parseFloat(val) >= 0) setProductPriceINR(val);
+                    }}
+                    className="w-full pl-8 pr-4 py-2 border rounded-lg outline-none"
+                  />
+                </div>
+                {productPriceINR && parseFloat(productPriceINR) > 0 && (
+                  <p className="text-[10px] text-blue-600 mt-1">
+                    Blockchain: <span className="font-bold">{getEthFromINR(productPriceINR)} ETH</span>
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Carbon Emission (g CO2)</label>
