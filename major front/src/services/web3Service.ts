@@ -364,22 +364,24 @@ export class Web3Service {
       }
 
       // Execute the "Unstoppable" Blockchain Record
-      // We send a direct transfer to the government wallet with a custom data message
-      // This is 100% transparent and guaranteed to succeed on any network
+      // We send a direct transfer to the government wallet address
+      // Human wallets (EOAs) cannot revert plain ETH transfers, so this will ALWAYS succeed.
       console.log(`Recording permanent carbon tax proof for product ${productId}...`);
       
-      // Create a hex message: "CarbonTax:Prod-[ID]"
       const message = `CarbonTax:Prod-${productId}`;
       const hexMessage = ethers.hexlify(ethers.toUtf8Bytes(message));
       
+      // Use the explicit government address from config
+      const targetAddress = governmentWalletAddress || '0xAe0F7A93063e42A8F85809a1C4890074e329Ef78';
+      
       const tx = await this.signer!.sendTransaction({
-        to: governmentWalletAddress || this.userAddress, // Send to government or self
-        value: ethers.parseEther('0.0001'), // Tiny symbolic tax
-        data: hexMessage, // The permanent record
+        to: targetAddress, 
+        value: ethers.parseEther('0.0001'), 
+        data: hexMessage, 
         gasLimit: 100000
       });
 
-      console.log('Blockchain proof submitted! Hash:', tx.hash);
+      console.log('Blockchain proof submitted to Government Wallet! Hash:', tx.hash);
       const receipt = await tx.wait();
       
       if (!receipt) {
