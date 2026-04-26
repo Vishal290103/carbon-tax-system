@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { web3Service } from '../src/services/web3Service';
 import { Button } from './ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import { Settings, PlusCircle, Landmark, AlertTriangle, RefreshCcw } from 'lucide-react';
+import { Settings, PlusCircle, Landmark, AlertTriangle, RefreshCcw, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function AdminDashboard() {
@@ -16,8 +16,15 @@ export function AdminDashboard() {
   const [isAddingProduct, setIsAddingProduct] = useState(false);
 
   const [projectId, setProjectId] = useState('');
-  const [fundAmount, setFundAmount] = useState('');
+  const [fundAmountINR, setFundAmountINR] = useState('');
   const [isFunding, setIsFunding] = useState(false);
+
+  // Helper to convert INR to ETH for blockchain (1 ETH = 2,00,000 INR)
+  const getEthFromINR = (inr: string) => {
+    const val = parseFloat(inr);
+    if (isNaN(val) || val <= 0) return '0';
+    return (val / 200000).toFixed(6);
+  };
 
   useEffect(() => {
     loadContractData();
@@ -84,23 +91,24 @@ export function AdminDashboard() {
   };
 
   const handleFundProject = async () => {
-    if (!projectId || !fundAmount) {
+    if (!projectId || !fundAmountINR) {
       toast.error('Please provide project ID and amount');
       return;
     }
     
-    if (parseInt(projectId) <= 0 || parseFloat(fundAmount) <= 0) {
+    const ethAmount = getEthFromINR(fundAmountINR);
+    if (parseInt(projectId) <= 0 || parseFloat(ethAmount) <= 0) {
       toast.error('Valid Project ID and Amount greater than zero required');
       return;
     }
 
     setIsFunding(true);
     try {
-      const success = await web3Service.fundGreenProject(parseInt(projectId), fundAmount);
+      const success = await web3Service.fundGreenProject(parseInt(projectId), ethAmount);
       if (success) {
-        toast.success('Funds successfully allocated to Green Project!');
+        toast.success(`₹${fundAmountINR} (approx. ${ethAmount} ETH) successfully allocated!`);
         setProjectId('');
-        setFundAmount('');
+        setFundAmountINR('');
       }
     } catch (error) {
       console.error('Funding error:', error);
@@ -182,20 +190,32 @@ export function AdminDashboard() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount to Allocate (ETH)</label>
-                <input 
-                  type="number" 
-                  min="0.0001"
-                  step="0.01"
-                  placeholder="e.g. 0.5"
-                  value={fundAmount}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === '' || parseFloat(val) >= 0) setFundAmount(val);
-                  }}
-                  className="w-full px-4 py-2 border rounded-lg outline-none"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Amount to Allocate (INR)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-gray-500">₹</span>
+                  <input 
+                    type="number" 
+                    min="1"
+                    placeholder="e.g. 50000"
+                    value={fundAmountINR}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || parseFloat(val) >= 0) setFundAmountINR(val);
+                    }}
+                    className="w-full pl-8 pr-4 py-2 border rounded-lg outline-none"
+                  />
+                </div>
               </div>
+              
+              {fundAmountINR && parseFloat(fundAmountINR) > 0 && (
+                <div className="p-3 bg-green-50 border border-green-100 rounded-lg flex items-center space-x-2">
+                  <Info className="h-4 w-4 text-green-600" />
+                  <p className="text-xs text-green-800 font-medium">
+                    Blockchain equivalent: <span className="font-bold">{getEthFromINR(fundAmountINR)} ETH</span>
+                  </p>
+                </div>
+              )}
+
               <Button 
                 onClick={handleFundProject} 
                 disabled={isFunding}
