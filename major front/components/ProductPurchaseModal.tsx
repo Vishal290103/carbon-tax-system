@@ -39,12 +39,10 @@ export function ProductPurchaseModal({
   const [isProcessing, setIsProcessing] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [paymentResult, setPaymentResult] = useState<any>(null);
   const [blockchainTxHash, setBlockchainTxHash] = useState<string | null>(null);
 
   if (!product) return null;
 
-  // Convert ETH prices to INR for display
   const ethBasePriceINR = paymentService.convertEthToINR(product.basePrice);
   const ethCarbonTaxINR = paymentService.convertEthToINR(product.carbonTax);
   
@@ -55,163 +53,86 @@ export function ProductPurchaseModal({
 
   const handlePurchase = async () => {
     if (!web3Service.isConnected()) {
-      toast.error('Please connect your wallet first - blockchain recording is required for all transactions');
-      return;
-    }
-
-    if (!paymentService.validatePaymentAmount(grandTotal)) {
-      toast.error('Invalid payment amount');
+      toast.error('Connect wallet first');
       return;
     }
 
     setIsProcessing(true);
     try {
-      toast.loading('Please approve blockchain transaction in MetaMask...', { id: 'blockchain-approval' });
+      toast.loading('Approving blockchain record...', { id: 'blockchain' });
       
-      const blockchainHash = await web3Service.recordTransactionOnBlockchain(
+      const hash = await web3Service.recordTransactionOnBlockchain(
         product.id,
         grandTotal,
         totalCarbonTax,
         'pending'
       );
       
-      if (!blockchainHash) {
-        throw new Error('Blockchain recording failed');
-      }
+      if (!hash) throw new Error('Failed');
       
-      toast.success('Blockchain transaction approved!', { id: 'blockchain-approval' });
-      setBlockchainTxHash(blockchainHash);
+      setBlockchainTxHash(hash);
       
-      const paymentDetails = {
+      const payment = await paymentService.processINRPayment({
         amount: grandTotal,
         productId: product.id,
         productName: product.name,
-        carbonTax: totalCarbonTax,
-        customerEmail: 'customer@example.com',
-        blockchainTxHash: blockchainHash
-      };
-
-      const payment = await paymentService.processINRPayment(paymentDetails);
+        carbonTax: totalCarbonTax
+      });
       
-      if (!payment || !payment.success) {
-        toast.error('Payment failed');
-        return;
+      if (payment?.success) {
+        localTransactionService.saveTransaction({
+          id: localTransactionService.generateTransactionId(),
+          productId: product.id,
+          productName: product.name,
+          basePrice: totalBasePrice,
+          carbonTax: totalCarbonTax,
+          totalAmount: grandTotal,
+          currency: 'INR',
+          paymentTransactionId: payment.transactionId,
+          paymentMethod: payment.paymentMethod,
+          blockchainTxHash: hash,
+          timestamp: Date.now(),
+          co2Emission: totalCO2
+        });
+        setShowConfirmation(true);
       }
-
-      setPaymentResult(payment);
-      
-      const localTransaction = {
-        id: localTransactionService.generateTransactionId(),
-        productId: product.id,
-        productName: product.name,
-        basePrice: totalBasePrice,
-        carbonTax: totalCarbonTax,
-        totalAmount: grandTotal,
-        currency: 'INR' as const,
-        paymentTransactionId: payment.transactionId,
-        paymentMethod: payment.paymentMethod,
-        blockchainTxHash: blockchainHash,
-        timestamp: Date.now(),
-        co2Emission: totalCO2
-      };
-      
-      localTransactionService.saveTransaction(localTransaction);
-      setShowConfirmation(true);
-      toast.success('Purchase completed successfully!');
-      
-    } catch (error) {
-      console.error('Purchase error:', error);
+    } catch (e) {
       toast.error('Purchase failed');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleClose = () => {
-    setQuantity(1);
-    setShowConfirmation(false);
-    setIsProcessing(false);
-    setPaymentResult(null);
-    setBlockchainTxHash(null);
-    onClose();
-  };
-
-  const getEmissionLevel = (co2: number) => {
-    if (co2 < 50) return { level: 'Low', color: 'text-green-600', bgColor: 'bg-green-50' };
-    if (co2 < 200) return { level: 'Medium', color: 'text-yellow-600', bgColor: 'bg-yellow-50' };
-    return { level: 'High', color: 'text-red-600', bgColor: 'bg-red-50' };
-  };
-
   if (showConfirmation) {
     return (
-      <Modal isOpen={isOpen} onClose={handleClose} title="Purchase Confirmed">
-        <div className="text-center space-y-6">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircle className="h-10 w-10 text-green-600" />
-          </div>
-          <h3>Transaction Successful!</h3>
-          <p>Your INR payment has been processed successfully.</p>
-          {blockchainTxHash && (
-            <div className="bg-blue-50 p-3 rounded-lg text-sm font-mono break-all">
-              Hash: {blockchainTxHash}
-            </div>
-          )}
-          <div className="bg-green-50 p-4 rounded-lg">
-            <TreePine className="h-5 w-5 text-green-600 mx-auto mb-2" />
-            <p className="text-sm">Emission offset: {totalCO2}g CO₂</p>
-          </div>
-          <div className="text-sm text-gray-500 flex items-center justify-center space-x-1">
-            <Clock className="h-4 w-4" />
-            <span>Closing automatically...</span>
-          </div>
+      <Modal isOpen={isOpen} onClose={onClose} title="Success">
+        <div className="text-center space-y-4">
+          <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
+          <p>Transaction successful!</p>
+          {blockchainTxHash && <p className="text-xs font-mono">{blockchainTxHash}</p>}
+          <Button onClick={onClose} className="w-full">Close</Button>
         </div>
       </Modal>
     );
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Purchase Product">
-      <div className="space-y-6">
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
-          <p className="text-sm text-gray-500">{product.category}</p>
+    <Modal isOpen={isOpen} onClose={onClose} title="Purchase">
+      <div className="space-y-4">
+        <h3>{product.name}</h3>
+        <div className="flex items-center space-x-2">
+          <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
+          <span>{quantity}</span>
+          <button onClick={() => setQuantity(quantity + 1)}>+</button>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-          <div className="flex items-center space-x-3">
-            <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 rounded-full border border-gray-300">-</button>
-            <span className="w-12 text-center font-medium">{quantity}</span>
-            <button onClick={() => setQuantity(quantity + 1)} className="w-8 h-8 rounded-full border border-gray-300">+</button>
-          </div>
+        <div className="border-t pt-2">
+          <div className="flex justify-between"><span>Base</span><span>{paymentService.formatINR(totalBasePrice)}</span></div>
+          <div className="flex justify-between"><span>Tax</span><span>{paymentService.formatINR(totalCarbonTax)}</span></div>
+          <div className="flex justify-between font-bold"><span>Total</span><span>{paymentService.formatINR(grandTotal)}</span></div>
         </div>
-        <div className={`p-4 rounded-lg ${getEmissionLevel(totalCO2).bgColor}`}>
-          <Leaf className="h-5 w-5 text-gray-600 mb-2" />
-          <p className="font-semibold">{totalCO2}g CO₂</p>
-        </div>
-        <div className="border rounded-lg p-4">
-          <Calculator className="h-5 w-5 text-gray-600 mb-3" />
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Base</span>
-              <span>{paymentService.formatINR(totalBasePrice)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Tax</span>
-              <AlertTriangle className="h-4 w-4 text-orange-500 inline mx-1" />
-              <span className="text-red-600">{paymentService.formatINR(totalCarbonTax)}</span>
-            </div>
-            <div className="border-t pt-2 flex justify-between font-bold text-lg">
-              <span>Total</span>
-              <span>{paymentService.formatINR(grandTotal)}</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex space-x-3">
-          <Button onClick={handleClose} variant="secondary" className="flex-1">Cancel</Button>
-          <Button onClick={handlePurchase} disabled={isProcessing} className="flex-1">
-            {isProcessing ? 'Processing...' : `Pay ${paymentService.formatINR(grandTotal)}`}
-          </Button>
-        </div>
+        <Button onClick={handlePurchase} disabled={isProcessing} className="w-full">
+          {isProcessing ? 'Processing...' : `Pay ${paymentService.formatINR(grandTotal)}`}
+        </Button>
       </div>
     </Modal>
   );

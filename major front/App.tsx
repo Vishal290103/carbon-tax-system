@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { web3Service, SystemStats } from './src/services/web3Service';
 import { paymentService } from './src/services/paymentService';
 import { Wallet, ShoppingCart, Coins, TrendingUp, Leaf, Shield, BarChart3, Calculator, Eye } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 
 // Import new components
 import { WalletConnection } from './components/WalletConnection';

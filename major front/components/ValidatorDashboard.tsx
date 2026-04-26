@@ -1,15 +1,7 @@
 import { useState, useEffect } from 'react';
 import { web3Service } from '../src/services/web3Service';
-import { paymentService } from '../src/services/paymentService';
 import { 
   Shield, 
-  Coins, 
-  TrendingUp, 
-  Users, 
-  Award,
-  AlertTriangle,
-  ExternalLink,
-  ChevronRight,
   Info
 } from 'lucide-react';
 import { Button } from './ui/Button';
@@ -28,13 +20,9 @@ interface ValidatorStats {
 
 export function ValidatorDashboard() {
   const [tokenBalance, setTokenBalance] = useState<string>('0');
-  const [ethBalance, setEthBalance] = useState<string>('0');
   const [validatorStats, setValidatorStats] = useState<ValidatorStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [stakeAmount, setStakeAmount] = useState<string>('1000');
   const [isStaking, setIsStaking] = useState(false);
-  const [isUnstaking, setIsUnstaking] = useState(false);
-  const [isClaimingRewards, setIsClaimingRewards] = useState(false);
   const [showStakingModal, setShowStakingModal] = useState(false);
   const [userAddress, setUserAddress] = useState<string>('');
   const [demoMode, setDemoMode] = useState(false);
@@ -62,9 +50,7 @@ export function ValidatorDashboard() {
   const loadValidatorData = async (address: string = userAddress) => {
     if (!address) return;
     try {
-      const eth = await web3Service.getBalance(address);
-      const tokens = await web3Service.getTokenBalance(address);
-      setEthBalance(eth);
+      const tokens = await web3Service.getTokenBalance();
       setTokenBalance(tokens);
 
       const validatorInfo = await web3Service.getValidatorInfo(address);
@@ -104,7 +90,7 @@ export function ValidatorDashboard() {
 
     setIsStaking(true);
     try {
-      const success = await web3Service.stakeTokens(stakeAmount);
+      const success = await web3Service.stakeTokens('1000');
       if (success) {
         toast.success('Tokens staked successfully!');
         setShowStakingModal(false);
@@ -118,7 +104,6 @@ export function ValidatorDashboard() {
   };
 
   const handleClaimRewards = async () => {
-    setIsClaimingRewards(true);
     try {
       const success = await web3Service.claimRewards();
       if (success) {
@@ -127,8 +112,6 @@ export function ValidatorDashboard() {
       }
     } catch (error) {
       console.error('Claim rewards error:', error);
-    } finally {
-      setIsClaimingRewards(false);
     }
   };
 
@@ -201,14 +184,11 @@ export function ValidatorDashboard() {
         <div className="space-y-6 p-2">
           <div className="p-4 bg-blue-50 rounded-lg flex items-start space-x-3">
             <Info className="h-5 w-5 text-blue-600 mt-0.5" />
-            <p className="text-sm text-blue-800">Staking 1000 CTT tokens is required to become a validator. Your tokens will be locked while you are a validator.</p>
+            <p className="text-sm text-blue-800">Staking 1000 CTT tokens is required to become a validator.</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Stake Amount</label>
-            <div className="relative">
-              <input type="number" value={stakeAmount} readOnly className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg" />
-              <div className="absolute right-3 top-3 text-sm font-medium text-gray-500">CTT</div>
-            </div>
+            <input type="number" value="1000" readOnly className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg" />
             <p className="text-xs text-gray-500 mt-2">Balance: {getDisplayTokenBalance()} CTT</p>
           </div>
           <Button onClick={handleStake} disabled={isStaking || parseFloat(getDisplayTokenBalance()) < 1000} className="w-full py-4">

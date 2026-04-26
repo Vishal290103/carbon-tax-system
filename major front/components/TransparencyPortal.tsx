@@ -9,7 +9,6 @@ import {
   Users,
   Leaf,
   Shield,
-  CheckCircle,
   ShoppingCart
 } from 'lucide-react';
 import { web3Service } from '../src/services/web3Service';
@@ -52,7 +51,7 @@ export function TransparencyPortal() {
   const loadTransparencyData = async () => {
     setIsLoading(true);
     try {
-      const localInrTx = localTransactionService.getTransactions();
+      const localInrTx = localTransactionService.getAllTransactions();
       setInrTransactions(localInrTx);
 
       const mockProjects: Project[] = [
@@ -64,7 +63,7 @@ export function TransparencyPortal() {
       const blockchainStats = await web3Service.getSystemStats();
       
       let inrTax = 0;
-      localInrTx.forEach(tx => inrTax += tx.carbonTax);
+      localInrTx.forEach((tx: INRTransaction) => inrTax += tx.carbonTax);
 
       setTotalStats({
         totalTaxCollected: blockchainStats ? parseFloat(blockchainStats.totalTaxCollected) * 200000 + inrTax : inrTax,
@@ -172,7 +171,16 @@ export function TransparencyPortal() {
                       <td className="py-4"><div className="flex items-center space-x-3">{getTransactionIcon()}<span className="font-mono text-xs">{tx.id.substring(0, 12)}...</span></div></td>
                       <td className="py-4">{tx.productName}</td>
                       <td className="py-4 font-medium text-green-600">{formatCurrency(tx.carbonTax)}</td>
-                      <td className="py-4"><a href={`https://sepolia.etherscan.io/tx/${tx.blockchainTxHash}`} target="_blank" rel="noreferrer" className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-xs"><span className="font-mono">{tx.blockchainTxHash.substring(0, 10)}...</span><ExternalLink className="h-3 w-3" /></a></td>
+                      <td className="py-4">
+                        {tx.blockchainTxHash ? (
+                          <a href={`https://sepolia.etherscan.io/tx/${tx.blockchainTxHash}`} target="_blank" rel="noreferrer" className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-xs">
+                            <span className="font-mono">{tx.blockchainTxHash.substring(0, 10)}...</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <span className="text-gray-400 text-xs italic">Not recorded</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

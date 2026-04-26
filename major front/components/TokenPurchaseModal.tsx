@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { web3Service } from '../src/services/web3Service';
 import { BLOCKCHAIN_API_URL } from '../src/config';
-import { X, Coins, DollarSign, Info, AlertTriangle, CheckCircle } from 'lucide-react';
+import { X, Coins } from 'lucide-react';
+import { Button } from './ui/Button';
 import toast from 'react-hot-toast';
 
 interface TokenPurchaseModalProps {
@@ -23,7 +24,6 @@ export function TokenPurchaseModal({ isOpen, onClose, onPurchaseComplete }: Toke
   const [exchangeRate, setExchangeRate] = useState<ExchangeRate | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [userEthBalance, setUserEthBalance] = useState<string>('0');
-  const [estimatedGasFee] = useState<string>('0.01');
 
   useEffect(() => {
     if (isOpen) {
@@ -86,10 +86,9 @@ export function TokenPurchaseModal({ isOpen, onClose, onPurchaseComplete }: Toke
     const tokens = parseFloat(tokenAmount);
     const eth = parseFloat(ethAmount);
     const userBalance = parseFloat(userEthBalance);
-    const gas = parseFloat(estimatedGasFee);
     if (tokens < parseFloat(exchangeRate.minimumPurchase)) return `Min ${exchangeRate.minimumPurchase} CTT`;
     if (tokens > parseFloat(exchangeRate.maximumPurchase)) return `Max ${exchangeRate.maximumPurchase} CTT`;
-    if (eth + gas > userBalance) return 'Insufficient balance';
+    if (eth > userBalance) return 'Insufficient balance';
     return null;
   };
 
