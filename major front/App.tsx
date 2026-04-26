@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { web3Service, SystemStats } from './src/services/web3Service';
 import { paymentService } from './src/services/paymentService';
+import { API_BASE_URL } from './src/config';
 import { Wallet, ShoppingCart, Coins, TrendingUp, Leaf, Shield, BarChart3, Calculator, Eye } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 
@@ -22,6 +23,7 @@ interface Product {
   category: string;
   description?: string;
   manufacturer?: string;
+  image?: string;
 }
 
 export default function App() {
