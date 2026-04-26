@@ -12,7 +12,6 @@ declare global {
 // Contract ABI will be imported from generated contract file
 let contractABI: any = null;
 let contractAddress: string = '';
-let governmentWalletAddress: string = '';
 
 import contractInfo from '../contracts/contract-config.json';
 
@@ -20,7 +19,6 @@ import contractInfo from '../contracts/contract-config.json';
 try {
   contractABI = contractInfo.abi;
   contractAddress = contractInfo.contractAddress;
-  governmentWalletAddress = contractInfo.governmentWallet;
 } catch (error) {
   console.warn('Contract deployment file not found. Please deploy the contract first.');
 }
