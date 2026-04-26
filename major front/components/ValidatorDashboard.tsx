@@ -32,6 +32,16 @@ export function ValidatorDashboard() {
     initDashboard();
   }, []);
 
+  // Auto-refresh rewards every 10 seconds
+  useEffect(() => {
+    if ((validatorStats?.isValidator || demoMode) && !isLoading) {
+      const interval = setInterval(() => {
+        loadValidatorData();
+      }, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [validatorStats?.isValidator, demoMode, isLoading]);
+
   const initDashboard = async () => {
     setIsLoading(true);
     try {
@@ -55,13 +65,14 @@ export function ValidatorDashboard() {
 
       const validatorInfo = await web3Service.getValidatorInfo(address);
       const systemStats = await web3Service.getSystemStats();
+      const rewards = await web3Service.calculateReward(address);
       
       const validatorRank = 1;
 
       setValidatorStats({
-        isValidator: validatorInfo ? validatorInfo.isActive : false,
-        stakedAmount: validatorInfo ? validatorInfo.stakedAmount : '0',
-        pendingRewards: '0',
+        isValidator: (validatorInfo ? validatorInfo.isActive : false) || demoMode,
+        stakedAmount: (validatorInfo ? validatorInfo.stakedAmount : '0') || (demoMode ? '1000' : '0'),
+        pendingRewards: demoMode ? (parseFloat(rewards) + 0.05).toFixed(4) : rewards,
         totalValidators: systemStats ? systemStats.totalValidators : 0,
         myValidatorRank: validatorRank
       });
