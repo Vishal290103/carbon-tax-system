@@ -96,9 +96,11 @@ export function TransparencyPortal() {
       let inrTax = 0;
       localInrTx.forEach((tx: INRTransaction) => inrTax += tx.carbonTax);
 
+      const totalAllocatedFromProjects = Array.from(uniqueProjects.values()).reduce((sum: number, p: any) => sum + p.fundingReceived, 0);
+
       setTotalStats({
         totalTaxCollected: blockchainStats ? parseFloat(blockchainStats.totalTaxCollected) * 200000 + inrTax : inrTax,
-        totalAllocated: 9500000,
+        totalAllocated: totalAllocatedFromProjects,
         activeProjects: blockchainStats ? blockchainStats.activeProjects : (projectData.length || 0),
         totalValidators: blockchainStats ? blockchainStats.totalValidators : 0,
         co2Reduced: 7000
