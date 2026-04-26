@@ -25,8 +25,9 @@ export function AdminDashboard() {
 
   const loadContractData = async () => {
     try {
-      if (web3Service.getContract()) {
-        const rate = await web3Service.getContract().carbonTaxRate();
+      const contract = web3Service.getContract();
+      if (contract) {
+        const rate = await contract.carbonTaxRate();
         setTaxRate(Number(rate));
         setNewTaxRate(rate.toString());
       }
