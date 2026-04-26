@@ -40,7 +40,7 @@ export function TokenPurchaseModal({ isOpen, onClose, onPurchaseComplete }: Toke
 
   const loadExchangeRate = async () => {
     try {
-      const response = await fetch(`${BLOCKCHAIN_API_URL}/tokens/exchange-rate');
+      const response = await fetch(`${BLOCKCHAIN_API_URL}/tokens/exchange-rate`);
       const data = await response.json();
       if (data.success) {
         setExchangeRate(data);
@@ -131,7 +131,7 @@ export function TokenPurchaseModal({ isOpen, onClose, onPurchaseComplete }: Toke
     
     try {
       // First try the backend API approach with validation
-      const response = await fetch(`${BLOCKCHAIN_API_URL}/tokens/buy', {
+      const response = await fetch(`${BLOCKCHAIN_API_URL}/tokens/buy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
