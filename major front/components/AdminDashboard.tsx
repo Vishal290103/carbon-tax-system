@@ -62,8 +62,8 @@ export function AdminDashboard() {
       return;
     }
     
-    if (parseFloat(productPrice) < 0 || parseInt(productEmission) < 0) {
-      toast.error('Price and Emission cannot be negative');
+    if (parseFloat(productPrice) <= 0 || parseInt(productEmission) < 0) {
+      toast.error('Price must be greater than zero and Emission cannot be negative');
       return;
     }
 
@@ -89,8 +89,8 @@ export function AdminDashboard() {
       return;
     }
     
-    if (parseInt(projectId) < 0 || parseFloat(fundAmount) < 0) {
-      toast.error('ID and Amount cannot be negative');
+    if (parseInt(projectId) <= 0 || parseFloat(fundAmount) <= 0) {
+      toast.error('Valid Project ID and Amount greater than zero required');
       return;
     }
 
@@ -136,8 +136,13 @@ export function AdminDashboard() {
                 <div className="flex space-x-2">
                   <input 
                     type="number" 
+                    min="0"
+                    max="20"
                     value={newTaxRate}
-                    onChange={(e) => setNewTaxRate(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || parseFloat(val) >= 0) setNewTaxRate(val);
+                    }}
                     className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                   />
                   <Button onClick={handleUpdateTaxRate} disabled={isUpdatingTax}>
@@ -166,9 +171,13 @@ export function AdminDashboard() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Project ID</label>
                 <input 
                   type="number" 
+                  min="1"
                   placeholder="e.g. 1"
                   value={projectId}
-                  onChange={(e) => setProjectId(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '' || parseInt(val) >= 0) setProjectId(val);
+                  }}
                   className="w-full px-4 py-2 border rounded-lg outline-none"
                 />
               </div>
@@ -176,10 +185,14 @@ export function AdminDashboard() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Amount to Allocate (ETH)</label>
                 <input 
                   type="number" 
+                  min="0.0001"
                   step="0.01"
                   placeholder="e.g. 0.5"
                   value={fundAmount}
-                  onChange={(e) => setFundAmount(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '' || parseFloat(val) >= 0) setFundAmount(val);
+                  }}
                   className="w-full px-4 py-2 border rounded-lg outline-none"
                 />
               </div>
@@ -218,9 +231,13 @@ export function AdminDashboard() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Base Price (ETH)</label>
                 <input 
                   type="number" 
+                  min="0.0001"
                   step="0.001"
                   value={productPrice}
-                  onChange={(e) => setProductPrice(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '' || parseFloat(val) >= 0) setProductPrice(val);
+                  }}
                   placeholder="e.g. 0.2"
                   className="w-full px-4 py-2 border rounded-lg outline-none"
                 />
@@ -229,8 +246,12 @@ export function AdminDashboard() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Carbon Emission (g CO2)</label>
                 <input 
                   type="number" 
+                  min="0"
                   value={productEmission}
-                  onChange={(e) => setProductEmission(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '' || parseInt(val) >= 0) setProductEmission(val);
+                  }}
                   placeholder="e.g. 50"
                   className="w-full px-4 py-2 border rounded-lg outline-none"
                 />
