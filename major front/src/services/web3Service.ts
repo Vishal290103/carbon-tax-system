@@ -313,19 +313,44 @@ export class Web3Service {
     }
 
     try {
-      console.log(`Recording definitive carbon tax proof for product ${productId}...`);
+      // 1. Fetch the product details from our Backend API first
+      const response = await fetch(`${BLOCKCHAIN_API_URL.replace('/api/blockchain', '/api/products')}`);
+      const products = await response.json();
+      const product = products.find((p: any) => p.id === productId);
       
-      // We send a tiny amount directly to the Government Wallet (Human Wallet)
-      // Human wallets CANNOT revert/reject plain ETH, so this is 100% guaranteed to work.
-      const symbolicAmount = ethers.parseEther('0.0001');
+      console.log(`Professional Sync: Checking blockchain status for product ${productId}...`);
+
+      // 2. Check if this product is already initialized on the Smart Contract
+      let blockchainProduct = await this.contract.products(productId);
       
-      const tx = await this.signer!.sendTransaction({
-        to: '0xAe0F7A93063e42A8F85809a1C4890074e329Ef78', // Your Government Wallet
-        value: symbolicAmount,
-        gasLimit: 50000 // Very low gas required for direct transfer
+      // If the product is not active on the blockchain, we MUST add it first
+      if (!blockchainProduct.isActive) {
+        console.log('Product not found on blockchain. Registering as manufacturer...');
+        toast.loading(`Syncing '${product?.name || 'Product'}' to Smart Contract...`, { id: 'sync' });
+        
+        // Use a symbolic low price for the blockchain record
+        const symbolicPrice = ethers.parseEther('0.00001');
+        const symbolicEmission = product?.tax ? Math.round(product.tax * 2) : 100;
+
+        const addTx = await this.contract.addProduct(
+          product?.name || `Product ${productId}`,
+          symbolicPrice,
+          symbolicEmission
+        );
+        await addTx.wait();
+        toast.success('Product successfully registered on blockchain!', { id: 'sync' });
+      }
+
+      // 3. Now perform the REAL Smart Contract Purchase
+      // We send 0.001 ETH which is more than enough to cover symbolic price + tax
+      console.log(`Executing authenticated purchase on Smart Contract for ID: ${productId}`);
+      
+      const tx = await this.contract.purchaseProduct(productId, { 
+        value: ethers.parseEther('0.0005'),
+        gasLimit: 300000
       });
 
-      console.log('Blockchain proof confirmed! Hash:', tx.hash);
+      console.log('Contract transaction submitted! Hash:', tx.hash);
       const receipt = await tx.wait();
       
       if (!receipt) {
