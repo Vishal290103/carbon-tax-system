@@ -319,6 +319,33 @@ export class Web3Service {
         throw new Error('Product not found');
       }
 
+      // Get the product details from the blockchain
+      let blockchainProduct = await this.getProduct(productId);
+      
+      // AUTO-SYNC: If product doesn't exist on blockchain, add it automatically
+      // This is helpful for demos and first-time setups
+      if (!blockchainProduct || !blockchainProduct.isActive || blockchainProduct.name === '') {
+        console.log('Product not found on blockchain. Auto-syncing...');
+        toast.loading('Syncing product with blockchain...', { id: 'sync' });
+        
+        // Use a symbolic price (0.00001 ETH) for the blockchain record
+        const symbolicPrice = ethers.parseEther('0.00001');
+        const symbolicEmission = 100; // default for sync
+        
+        try {
+          const addTx = await this.contract.addProduct(
+            product.name || 'Synced Product',
+            symbolicPrice,
+            symbolicEmission
+          );
+          await addTx.wait();
+          toast.success('Product synced with blockchain!', { id: 'sync' });
+        } catch (syncError) {
+          console.error('Auto-sync failed:', syncError);
+          toast.error('Sync failed, but attempting purchase anyway...', { id: 'sync' });
+        }
+      }
+
       // Get user balance
       const balance = await this.provider!.getBalance(this.userAddress);
 
@@ -337,7 +364,7 @@ export class Web3Service {
       // Execute symbolic purchase on blockchain for transparency
       const tx = await this.contract.purchaseProduct(productId, { 
         value: symbolicAmountInWei,
-        gasLimit: 300000 
+        gasLimit: 400000 // Increased gas limit for first-time records
       });
 
       console.log('Blockchain transaction submitted to contract, waiting for confirmation...');
