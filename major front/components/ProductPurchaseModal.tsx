@@ -90,6 +90,8 @@ export function ProductPurchaseModal({
           co2Emission: totalCO2
         });
         setShowConfirmation(true);
+        // Notify the app that a transaction was completed to refresh stats
+        window.dispatchEvent(new CustomEvent('transactionCompleted'));
       }
     } catch (e) {
       toast.error('Purchase failed');

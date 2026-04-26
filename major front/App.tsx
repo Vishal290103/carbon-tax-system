@@ -41,6 +41,15 @@ export default function App() {
 
   useEffect(() => {
     initializeApp();
+    
+    // Listen for transaction completions to refresh stats
+    const handleRefresh = () => {
+      loadSystemStats();
+      loadBalances();
+    };
+    
+    window.addEventListener('transactionCompleted', handleRefresh);
+    return () => window.removeEventListener('transactionCompleted', handleRefresh);
   }, []);
 
   const initializeApp = async () => {
