@@ -319,27 +319,26 @@ export class Web3Service {
         throw new Error('Product not found');
       }
 
-      // Check if user has sufficient ETH balance for the product price + gas
+      // Check if user has sufficient ETH balance for a SYMBOLIC record + gas
       const balance = await this.provider!.getBalance(this.userAddress);
-      const productPrice = parseFloat(product.basePrice) + parseFloat(product.carbonTax);
-      const productPriceInWei = ethers.parseEther(productPrice.toString());
-      const gasEstimate = ethers.parseEther('0.01'); // Gas estimate
-      const totalRequired = productPriceInWei + gasEstimate;
+      
+      // We use a tiny symbolic amount (0.0001 ETH) for the blockchain record 
+      // This ensures transparency without requiring the user to have huge amounts of test ETH
+      const symbolicAmount = '0.0001'; 
+      const symbolicAmountInWei = ethers.parseEther(symbolicAmount);
+      const gasEstimate = ethers.parseEther('0.005'); // Lower gas estimate
+      const totalRequired = symbolicAmountInWei + gasEstimate;
       
       if (balance < totalRequired) {
         const requiredEth = ethers.formatEther(totalRequired);
-        throw new Error(`Insufficient ETH balance. Required: ${requiredEth} ETH (${productPrice} ETH for blockchain record + gas fees)`);
+        throw new Error(`Insufficient ETH balance. Required: ${requiredEth} ETH to record transaction on blockchain.`);
       }
 
-      // Calculate the total amount in ETH for the contract call (using product from above)
-      const totalEthAmount = parseFloat(product.basePrice) + parseFloat(product.carbonTax);
-      const totalAmountInWei = ethers.parseEther(totalEthAmount.toString());
-
-      // Use the existing purchaseProduct function which creates a proper blockchain record
-      // User will see this transaction in MetaMask with proper gas estimation
+      // Execute symbolic purchase on blockchain for transparency
+      // The real payment happens via the INR gateway
       const tx = await this.contract.purchaseProduct(productId, { 
-        value: totalAmountInWei,
-        gasLimit: 300000 // Sufficient gas for contract interaction
+        value: symbolicAmountInWei,
+        gasLimit: 200000 
       });
 
       console.log('Blockchain transaction submitted to contract, waiting for confirmation...');

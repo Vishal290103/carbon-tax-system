@@ -80,29 +80,28 @@ export default function App() {
   const loadProducts = async () => {
     setIsLoadingProducts(true);
     try {
-      // Determine number of products from system stats if available, else fallback
-      const stats = await web3Service.getSystemStats();
-      const count = stats ? stats.activeProducts : 0;
-      const fetched: Product[] = [];
-
-      for (let i = 1; i <= count; i++) {
-        const p = await web3Service.getProduct(i);
-        if (p && p.isActive) {
-          // Map contract product (in ETH) to UI (in ETH units too for consistency)
-          fetched.push({
-            id: i,
-            name: p.name,
-            basePrice: parseFloat(p.basePrice),
-            carbonTax: parseFloat(p.carbonTax),
-            co2Emission: p.carbonEmission,
-            category: 'General',
-            manufacturer: p.manufacturer,
-          } as any);
-        }
+      // Fetch products from the Backend API (Render) instead of the Blockchain
+      // This ensures we get images, categories, and full metadata
+      const response = await fetch(`${API_BASE_URL}/api/products`);
+      const data = await response.json();
+      
+      if (Array.isArray(data)) {
+        // Map backend products to the UI format
+        const fetched: Product[] = data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          basePrice: p.price / 200000, // Convert INR back to ETH for display consistency
+          carbonTax: p.tax / 200000,
+          co2Emission: p.tax * 2, // Estimate emission from tax if not provided
+          category: p.category || 'General',
+          description: p.description,
+          manufacturer: p.manufacturer || 'Verified Manufacturer',
+          image: p.image // Now we have images!
+        }));
+        setProducts(fetched);
       }
-      setProducts(fetched);
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error('Error loading products from API:', error);
     } finally {
       setIsLoadingProducts(false);
     }
@@ -341,26 +340,49 @@ export default function App() {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => (
-                  <div key={product.id} className="bg-white p-6 rounded-xl shadow-md">
-                    <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-                    <div className="space-y-2 mb-4">
-                      <p className="text-gray-600">Base Price: {paymentService.formatINR(paymentService.convertEthToINR(product.basePrice))}</p>
-                      <p className="text-red-600">Carbon Tax: {paymentService.formatINR(paymentService.convertEthToINR(product.carbonTax))}</p>
-                      <p className="text-sm text-gray-500">CO2: {product.co2Emission}g</p>
-                      <p className="font-semibold text-green-600">
-                        Total: {paymentService.formatINR(paymentService.convertEthToINR(product.basePrice + product.carbonTax))}
-                      </p>
-                      {product.manufacturer && (
-                        <p className="text-xs text-gray-400">Manufacturer: {product.manufacturer.slice(0, 10)}...</p>
-                      )}
+                  <div key={product.id} className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col">
+                    {product.image && (
+                      <div className="h-48 w-full overflow-hidden">
+                        <img 
+                          src={product.image} 
+                          alt={product.name} 
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    <div className="p-6 flex-1 flex flex-col">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-xl font-semibold text-gray-900">{product.name}</h3>
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+                          {product.category}
+                        </span>
+                      </div>
+                      <div className="space-y-2 mb-4 flex-1">
+                        <p className="text-gray-600 flex justify-between">
+                          <span>Base Price:</span>
+                          <span>{paymentService.formatINR(paymentService.convertEthToINR(product.basePrice))}</span>
+                        </p>
+                        <p className="text-red-600 flex justify-between">
+                          <span>Carbon Tax:</span>
+                          <span>{paymentService.formatINR(paymentService.convertEthToINR(product.carbonTax))}</span>
+                        </p>
+                        <p className="text-sm text-gray-500 flex justify-between border-t pt-2">
+                          <span>Est. Emissions:</span>
+                          <span>{product.co2Emission}g CO₂</span>
+                        </p>
+                        <p className="font-bold text-green-600 flex justify-between text-lg">
+                          <span>Total:</span>
+                          <span>{paymentService.formatINR(paymentService.convertEthToINR(product.basePrice + product.carbonTax))}</span>
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handlePurchaseProduct(product)}
+                        disabled={!isWalletConnected}
+                        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold transition-colors shadow-sm"
+                      >
+                        {!isWalletConnected ? 'Connect Wallet' : 'Purchase with Transparency'}
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handlePurchaseProduct(product)}
-                      disabled={!isWalletConnected}
-                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg transition-colors"
-                    >
-                      {!isWalletConnected ? 'Connect Wallet for Blockchain Transparency' : 'Purchase Product'}
-                    </button>
                   </div>
                 ))}
               </div>

@@ -14,6 +14,7 @@ import {
 import { web3Service } from '../src/services/web3Service';
 import { paymentService } from '../src/services/paymentService';
 import { localTransactionService, INRTransaction } from '../src/services/localTransactionService';
+import { API_BASE_URL } from '../src/config';
 
 interface Project {
   id: number;
@@ -54,11 +55,25 @@ export function TransparencyPortal() {
       const localInrTx = localTransactionService.getAllTransactions();
       setInrTransactions(localInrTx);
 
-      const mockProjects: Project[] = [
-        { id: 1, name: 'Solar Farm Initiative', location: 'Rajasthan, India', type: 'Solar Energy', fundingGoal: 10000000, fundingReceived: 7500000, status: 'active', co2Reduction: 5000, beneficiaries: 12000 },
-        { id: 2, name: 'Reforestation Project', location: 'Karnataka, India', type: 'Reforestation', fundingGoal: 5000000, fundingReceived: 2000000, status: 'active', co2Reduction: 2000, beneficiaries: 5000 }
-      ];
-      setProjects(mockProjects);
+      // Fetch projects from the Backend API (Render)
+      const projectResponse = await fetch(`${API_BASE_URL}/api/projects`);
+      const projectData = await projectResponse.json();
+      
+      if (Array.isArray(projectData)) {
+        const mappedProjects: Project[] = projectData.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          location: p.location || 'India',
+          type: p.type || 'Green Energy',
+          fundingGoal: p.cost,
+          fundingReceived: (p.cost * (p.progress || 0)) / 100,
+          status: p.progress >= 100 ? 'completed' : 'active',
+          co2Reduction: p.cost / 1000, // Estimate impact
+          beneficiaries: p.cost / 100, // Estimate beneficiaries
+          image: p.image // Ensure we have the image
+        }));
+        setProjects(mappedProjects);
+      }
 
       const blockchainStats = await web3Service.getSystemStats();
       
@@ -68,7 +83,7 @@ export function TransparencyPortal() {
       setTotalStats({
         totalTaxCollected: blockchainStats ? parseFloat(blockchainStats.totalTaxCollected) * 200000 + inrTax : inrTax,
         totalAllocated: 9500000,
-        activeProjects: blockchainStats ? blockchainStats.activeProjects : 2,
+        activeProjects: blockchainStats ? blockchainStats.activeProjects : (projectData.length || 0),
         totalValidators: blockchainStats ? blockchainStats.totalValidators : 0,
         co2Reduced: 7000
       });
