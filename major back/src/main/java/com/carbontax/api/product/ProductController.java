@@ -10,8 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
-// Allow requests from your React app's origin
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 public class ProductController {
 
     @Autowired
