@@ -1,4 +1,4 @@
-import { Eye, ShoppingCart, Receipt, Search, ExternalLink, CreditCard } from 'lucide-react';
+import { Eye, Receipt, Search, ExternalLink } from 'lucide-react';
 
 export function TransactionGuide() {
   return (

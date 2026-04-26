@@ -610,7 +610,7 @@ export class Web3Service {
         activeProjects: Number(stats._activeProjects),
         totalValidators: Number(stats._totalValidators)
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting system stats:', error);
       if (error.message?.includes('could not decode result data')) {
         console.warn('Contract not deployed or wrong network. Please ensure Hardhat node is running on localhost:8545');
@@ -626,7 +626,7 @@ export class Web3Service {
 
     try {
       return await this.contract.getActiveValidators();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting active validators:', error);
       return [];
     }

@@ -39,12 +39,12 @@ export function ProductPurchaseModal({
   product, 
   isOpen, 
   onClose, 
-  onPurchaseComplete 
+  onPurchaseComplete: _onPurchaseComplete 
 }: ProductPurchaseModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
+  const [_txHash, setTxHash] = useState<string | null>(null);
   const [paymentResult, setPaymentResult] = useState<any>(null);
   const [blockchainTxHash, setBlockchainTxHash] = useState<string | null>(null);
 

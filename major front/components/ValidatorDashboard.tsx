@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { web3Service, Validator } from '../src/services/web3Service';
+import { web3Service } from '../src/services/web3Service';
 import { paymentService } from '../src/services/paymentService';
 import { 
   Shield, 

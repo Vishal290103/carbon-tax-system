@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { Coins, Zap, CheckCircle } from 'lucide-react';
+import { Coins, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface MockTokenFaucetProps {
   onTokensReceived: () => void;
-  currentBalance: string;
+  _currentBalance: string;
 }
 
-export function MockTokenFaucet({ onTokensReceived, currentBalance }: MockTokenFaucetProps) {
+export function MockTokenFaucet({ onTokensReceived, currentBalance: _currentBalance }: MockTokenFaucetProps) {
   const [isRequesting, setIsRequesting] = useState(false);
 
   const handleMockTokens = async () => {

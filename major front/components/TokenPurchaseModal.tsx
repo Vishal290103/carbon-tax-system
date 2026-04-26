@@ -69,6 +69,7 @@ export function TokenPurchaseModal({ isOpen, onClose, onPurchaseComplete }: Toke
     setEthAmount(ethRequired.toFixed(6));
   };
 
+  /*
   const calculateTokenAmount = () => {
     if (!ethAmount || !exchangeRate) return;
     
@@ -77,6 +78,7 @@ export function TokenPurchaseModal({ isOpen, onClose, onPurchaseComplete }: Toke
     const tokensReceived = eth * rate;
     setTokenAmount(tokensReceived.toString());
   };
+  */
 
   const handleTokenAmountChange = (value: string) => {
     setTokenAmount(value);

@@ -1,4 +1,4 @@
-import { Code, Terminal, AlertCircle, CheckCircle } from 'lucide-react';
+import { Terminal, AlertCircle, CheckCircle } from 'lucide-react';
 
 export function TokenIssueGuide() {
   return (
