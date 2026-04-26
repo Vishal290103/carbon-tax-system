@@ -88,12 +88,12 @@ export default function App() {
       const data = await response.json();
       
       if (Array.isArray(data)) {
-        // Map backend products and filter out duplicates by ID
+        // Filter out duplicates using NAME as the key
         const uniqueProducts = new Map();
         
         data.forEach((p: any) => {
-          if (!uniqueProducts.has(p.id)) {
-            uniqueProducts.set(p.id, {
+          if (p.name && !uniqueProducts.has(p.name)) {
+            uniqueProducts.set(p.name, {
               id: p.id,
               name: p.name,
               basePrice: p.price / 200000,

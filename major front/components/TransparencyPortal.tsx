@@ -63,8 +63,8 @@ export function TransparencyPortal() {
         const uniqueProjects = new Map();
         
         projectData.forEach((p: any) => {
-          if (!uniqueProjects.has(p.id)) {
-            uniqueProjects.set(p.id, {
+          if (p.name && !uniqueProjects.has(p.name)) {
+            uniqueProjects.set(p.name, {
               id: p.id,
               name: p.name,
               location: p.location || 'India',
