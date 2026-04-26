@@ -60,19 +60,26 @@ export function TransparencyPortal() {
       const projectData = await projectResponse.json();
       
       if (Array.isArray(projectData)) {
-        const mappedProjects: Project[] = projectData.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          location: p.location || 'India',
-          type: p.type || 'Green Energy',
-          fundingGoal: p.cost,
-          fundingReceived: (p.cost * (p.progress || 0)) / 100,
-          status: p.progress >= 100 ? 'completed' : 'active',
-          co2Reduction: p.cost / 1000, // Estimate impact
-          beneficiaries: p.cost / 100, // Estimate beneficiaries
-          image: p.image // Ensure we have the image
-        }));
-        setProjects(mappedProjects);
+        const uniqueProjects = new Map();
+        
+        projectData.forEach((p: any) => {
+          if (!uniqueProjects.has(p.id)) {
+            uniqueProjects.set(p.id, {
+              id: p.id,
+              name: p.name,
+              location: p.location || 'India',
+              type: p.type || 'Green Energy',
+              fundingGoal: p.cost,
+              fundingReceived: (p.cost * (p.progress || 0)) / 100,
+              status: p.progress >= 100 ? 'completed' : 'active',
+              co2Reduction: p.cost / 1000,
+              beneficiaries: p.cost / 100,
+              image: p.image
+            });
+          }
+        });
+        
+        setProjects(Array.from(uniqueProjects.values()));
       }
 
       const blockchainStats = await web3Service.getSystemStats();

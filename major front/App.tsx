@@ -88,19 +88,26 @@ export default function App() {
       const data = await response.json();
       
       if (Array.isArray(data)) {
-        // Map backend products to the UI format
-        const fetched: Product[] = data.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          basePrice: p.price / 200000, // Convert INR back to ETH for display consistency
-          carbonTax: p.tax / 200000,
-          co2Emission: p.tax * 2, // Estimate emission from tax if not provided
-          category: p.category || 'General',
-          description: p.description,
-          manufacturer: p.manufacturer || 'Verified Manufacturer',
-          image: p.image // Now we have images!
-        }));
-        setProducts(fetched);
+        // Map backend products and filter out duplicates by ID
+        const uniqueProducts = new Map();
+        
+        data.forEach((p: any) => {
+          if (!uniqueProducts.has(p.id)) {
+            uniqueProducts.set(p.id, {
+              id: p.id,
+              name: p.name,
+              basePrice: p.price / 200000,
+              carbonTax: p.tax / 200000,
+              co2Emission: p.tax * 2,
+              category: p.category || 'General',
+              description: p.description,
+              manufacturer: p.manufacturer || 'Verified Manufacturer',
+              image: p.image
+            });
+          }
+        });
+        
+        setProducts(Array.from(uniqueProducts.values()));
       }
     } catch (error) {
       console.error('Error loading products from API:', error);
