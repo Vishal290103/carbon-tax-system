@@ -191,6 +191,10 @@ export class Web3Service {
     return !!this.userAddress && !!this.contract;
   }
 
+  getContract(): ethers.Contract | null {
+    return this.contract;
+  }
+
   getUserAddress(): string {
     return this.userAddress;
   }
