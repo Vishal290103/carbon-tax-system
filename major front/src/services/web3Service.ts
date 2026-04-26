@@ -376,6 +376,10 @@ export class Web3Service {
 
       console.log('Blockchain transaction submitted, hash:', tx.hash);
       const receipt = await tx.wait();
+      
+      if (!receipt) {
+        throw new Error('Transaction failed to return a receipt.');
+      }
 
       console.log('Contract transaction confirmed:', receipt.hash);
       return receipt.hash;
