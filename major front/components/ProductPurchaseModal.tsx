@@ -2,12 +2,7 @@ import { useState } from 'react';
 import { Button } from './ui/Button';
 import { Modal } from './ui/Modal';
 import { 
-  Leaf, 
-  AlertTriangle, 
-  Calculator,
-  TreePine,
-  CheckCircle,
-  Clock
+  CheckCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { web3Service } from '../src/services/web3Service';
