@@ -22,4 +22,20 @@ public class GreenProjectController {
     public GreenProject createProject(@RequestBody GreenProject project) {
         return greenProjectRepository.save(project);
     }
+
+    @PutMapping("/{id}")
+    public GreenProject updateProject(@PathVariable Long id, @RequestBody GreenProject projectDetails) {
+        GreenProject project = greenProjectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + id));
+        
+        project.setName(projectDetails.getName());
+        project.setType(projectDetails.getType());
+        project.setCost(projectDetails.getCost());
+        project.setDescription(projectDetails.getDescription());
+        project.setProgress(projectDetails.getProgress());
+        project.setImage(projectDetails.getImage());
+        project.setLocation(projectDetails.getLocation());
+        
+        return greenProjectRepository.save(project);
+    }
 }

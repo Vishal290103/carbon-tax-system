@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { web3Service } from '../src/services/web3Service';
 import { Button } from './ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import { Settings, PlusCircle, Landmark, AlertTriangle, RefreshCcw, Info } from 'lucide-react';
+import { Settings, PlusCircle, Landmark, AlertTriangle, RefreshCcw, Info, Leaf } from 'lucide-react';
+import { API_BASE_URL } from '../src/config';
 import toast from 'react-hot-toast';
 
 export function AdminDashboard() {
@@ -18,6 +19,12 @@ export function AdminDashboard() {
   const [projectId, setProjectId] = useState('');
   const [fundAmountINR, setFundAmountINR] = useState('');
   const [isFunding, setIsFunding] = useState(false);
+
+  const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectLocation, setNewProjectLocation] = useState('');
+  const [newProjectType, setNewProjectType] = useState('Solar Energy');
+  const [newProjectGoalINR, setNewProjectGoalINR] = useState('');
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
 
   // Helper to convert INR to ETH for blockchain (1 ETH = 2,00,000 INR)
   const getEthFromINR = (inr: string) => {
@@ -85,13 +92,11 @@ export function AdminDashboard() {
         try {
           const response = await fetch(`${API_BASE_URL}/api/products`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               name: productName,
               price: parseFloat(productPriceINR),
-              tax: parseFloat(productPriceINR) * 0.05, // Estimate 5% tax
+              tax: parseFloat(productPriceINR) * (taxRate / 100),
               category: 'General',
               manufacturer: web3Service.getUserAddress(),
               image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1999&auto=format&fit=crop'
@@ -101,8 +106,7 @@ export function AdminDashboard() {
           if (response.ok) {
             toast.success(`'${productName}' is now LIVE on the Home Page and Blockchain!`);
           } else {
-            console.error('Failed to sync to database');
-            toast.error('Registered on blockchain, but failed to show on home page. Please refresh.');
+            toast.error('Registered on blockchain, but failed to sync to home page. Please refresh.');
           }
         } catch (dbError) {
           console.error('Database sync error:', dbError);
@@ -127,15 +131,40 @@ export function AdminDashboard() {
     
     const ethAmount = getEthFromINR(fundAmountINR);
     if (parseInt(projectId) <= 0 || parseFloat(ethAmount) <= 0) {
-      toast.error('Valid Project ID and Amount greater than zero required');
+      toast.error('Valid Project ID and Amount required');
       return;
     }
 
     setIsFunding(true);
     try {
+      // 1. Fund on Blockchain
       const success = await web3Service.fundGreenProject(parseInt(projectId), ethAmount);
+      
       if (success) {
-        toast.success(`₹${fundAmountINR} (approx. ${ethAmount} ETH) successfully allocated!`);
+        // 2. Sync progress to Backend so it shows in Transparency Portal
+        try {
+          const projectResponse = await fetch(`${API_BASE_URL}/api/projects`);
+          const projects = await projectResponse.json();
+          const project = projects.find((p: any) => p.id === parseInt(projectId));
+
+          if (project) {
+            const currentFunding = (project.cost * (project.progress || 0)) / 100;
+            const newFunding = currentFunding + parseFloat(fundAmountINR);
+            const newProgress = Math.min(100, Math.round((newFunding / project.cost) * 100));
+
+            await fetch(`${API_BASE_URL}/api/projects/${projectId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ...project, progress: newProgress }),
+            });
+            
+            toast.success(`₹${fundAmountINR} allocated! Project progress is now ${newProgress}%.`);
+            window.dispatchEvent(new CustomEvent('transactionCompleted'));
+          }
+        } catch (syncError) {
+          console.error('Database sync error:', syncError);
+        }
+
         setProjectId('');
         setFundAmountINR('');
       }
@@ -143,6 +172,55 @@ export function AdminDashboard() {
       console.error('Funding error:', error);
     } finally {
       setIsFunding(false);
+    }
+  };
+
+  const handleCreateProject = async () => {
+    if (!newProjectName || !newProjectLocation || !newProjectGoalINR) {
+      toast.error('Please fill all project fields');
+      return;
+    }
+
+    const ethGoal = getEthFromINR(newProjectGoalINR);
+    setIsCreatingProject(true);
+
+    try {
+      // 1. Create on Blockchain
+      const success = await web3Service.createGreenProject(
+        newProjectName,
+        newProjectLocation,
+        newProjectType,
+        ethGoal,
+        parseInt(newProjectGoalINR) / 100
+      );
+
+      if (success) {
+        // 2. Sync to Backend
+        await fetch(`${API_BASE_URL}/api/projects`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: newProjectName,
+            type: newProjectType,
+            cost: parseFloat(newProjectGoalINR),
+            description: `A new ${newProjectType} initiative located in ${newProjectLocation}.`,
+            progress: 0,
+            location: newProjectLocation,
+            image: newProjectType.includes('Solar') 
+              ? 'https://images.unsplash.com/photo-1509391366360-fe5bb58583bb?auto=format&fit=crop&q=80&w=2070'
+              : 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=2026'
+          }),
+        });
+
+        toast.success(`'${newProjectName}' created on Blockchain and Transparency Portal!`);
+        setNewProjectName('');
+        setNewProjectLocation('');
+        setNewProjectGoalINR('');
+      }
+    } catch (error) {
+      console.error('Project creation error:', error);
+    } finally {
+      setIsCreatingProject(false);
     }
   };
 
@@ -155,171 +233,73 @@ export function AdminDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Tax Rate Control */}
-        <Card className="border-l-4 border-l-indigo-600">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Settings className="h-5 w-5" />
-              <span>Climate Policy Management</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 bg-indigo-50 rounded-lg">
-                <p className="text-sm text-indigo-700 font-medium">Current Global Tax Rate</p>
-                <p className="text-3xl font-bold text-indigo-900">{taxRate}%</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Update Tax Rate (%)</label>
-                <div className="flex space-x-2">
-                  <input 
-                    type="number" 
-                    min="0"
-                    max="20"
-                    value={newTaxRate}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === '' || parseFloat(val) >= 0) setNewTaxRate(val);
-                    }}
-                    className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
-                  <Button onClick={handleUpdateTaxRate} disabled={isUpdatingTax}>
-                    {isUpdatingTax ? 'Updating...' : 'Set Rate'}
-                  </Button>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 italic">
-                * Updating this will affect all future transactions across the network.
-              </p>
+        <Card className="border-l-4 border-l-indigo-600 shadow-lg">
+          <CardHeader><CardTitle className="flex items-center space-x-2"><Settings className="h-5 w-5" /><span>Policy Management</span></CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 bg-indigo-50 rounded-lg">
+              <p className="text-sm text-indigo-700 font-medium">Global Carbon Tax Rate</p>
+              <p className="text-3xl font-bold text-indigo-900">{taxRate}%</p>
+            </div>
+            <div className="flex space-x-2">
+              <input type="number" min="0" max="20" value={newTaxRate} onChange={(e) => {
+                const val = e.target.value;
+                if (val === '' || parseFloat(val) >= 0) setNewTaxRate(val);
+              }} className="flex-1 px-4 py-2 border rounded-lg outline-none" />
+              <Button onClick={handleUpdateTaxRate} disabled={isUpdatingTax}>{isUpdatingTax ? 'Updating...' : 'Set Rate'}</Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Fund Allocation */}
-        <Card className="border-l-4 border-l-green-600">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <RefreshCcw className="h-5 w-5 text-green-600" />
-              <span>Project Fund Allocation</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Project ID</label>
-                <input 
-                  type="number" 
-                  min="1"
-                  placeholder="e.g. 1"
-                  value={projectId}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === '' || parseInt(val) >= 0) setProjectId(val);
-                  }}
-                  className="w-full px-4 py-2 border rounded-lg outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount to Allocate (INR)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2 text-gray-500">₹</span>
-                  <input 
-                    type="number" 
-                    min="1"
-                    placeholder="e.g. 50000"
-                    value={fundAmountINR}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === '' || parseFloat(val) >= 0) setFundAmountINR(val);
-                    }}
-                    className="w-full pl-8 pr-4 py-2 border rounded-lg outline-none"
-                  />
-                </div>
-              </div>
-              
-              {fundAmountINR && parseFloat(fundAmountINR) > 0 && (
-                <div className="p-3 bg-green-50 border border-green-100 rounded-lg flex items-center space-x-2">
-                  <Info className="h-4 w-4 text-green-600" />
-                  <p className="text-xs text-green-800 font-medium">
-                    Blockchain equivalent: <span className="font-bold">{getEthFromINR(fundAmountINR)} ETH</span>
-                  </p>
-                </div>
-              )}
-
-              <Button 
-                onClick={handleFundProject} 
-                disabled={isFunding}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
-                {isFunding ? 'Processing...' : 'Authorize Funding'}
-              </Button>
+        <Card className="border-l-4 border-l-green-600 shadow-lg">
+          <CardHeader><CardTitle className="flex items-center space-x-2"><RefreshCcw className="h-5 w-5 text-green-600" /><span>Fund Allocation</span></CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <input type="number" min="1" placeholder="Project ID (e.g. 1)" value={projectId} onChange={(e) => {
+              const val = e.target.value;
+              if (val === '' || parseInt(val) >= 0) setProjectId(val);
+            }} className="w-full px-4 py-2 border rounded-lg outline-none" />
+            <div className="relative">
+              <span className="absolute left-3 top-2 text-gray-500">₹</span>
+              <input type="number" min="1" placeholder="Amount (INR)" value={fundAmountINR} onChange={(e) => {
+                const val = e.target.value;
+                if (val === '' || parseFloat(val) >= 0) setFundAmountINR(val);
+              }} className="w-full pl-8 pr-4 py-2 border rounded-lg outline-none" />
             </div>
+            {fundAmountINR && <p className="text-xs text-green-600 font-medium">Blockchain equivalent: <b>{getEthFromINR(fundAmountINR)} ETH</b></p>}
+            <Button onClick={handleFundProject} disabled={isFunding} className="w-full bg-green-600 hover:bg-green-700">{isFunding ? 'Processing...' : 'Authorize Funding'}</Button>
+          </CardContent>
+        </Card>
+
+        {/* Create Project */}
+        <Card className="border-l-4 border-l-emerald-600 shadow-lg">
+          <CardHeader><CardTitle className="flex items-center space-x-2"><PlusCircle className="h-5 w-5 text-emerald-600" /><span>Create Green Project</span></CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <input type="text" placeholder="Project Name" value={newProjectName} onChange={(e) => setNewProjectName(e.target.value)} className="w-full px-4 py-2 border rounded-lg outline-none" />
+            <input type="text" placeholder="Location" value={newProjectLocation} onChange={(e) => setNewProjectLocation(e.target.value)} className="w-full px-4 py-2 border rounded-lg outline-none" />
+            <select value={newProjectType} onChange={(e) => setNewProjectType(e.target.value)} className="w-full px-4 py-2 border rounded-lg outline-none">
+              <option value="Solar Energy">Solar Energy</option>
+              <option value="Reforestation">Reforestation</option>
+              <option value="Wind Power">Wind Power</option>
+            </select>
+            <div className="relative">
+              <span className="absolute left-3 top-2 text-gray-500">₹</span>
+              <input type="number" min="1" placeholder="Funding Goal (INR)" value={newProjectGoalINR} onChange={(e) => setNewProjectGoalINR(e.target.value)} className="w-full pl-8 pr-4 py-2 border rounded-lg outline-none" />
+            </div>
+            <Button onClick={handleCreateProject} disabled={isCreatingProject} className="w-full bg-emerald-600">{isCreatingProject ? 'Creating...' : 'Create on Blockchain & Web'}</Button>
           </CardContent>
         </Card>
 
         {/* Add Product */}
-        <Card className="md:col-span-2 border-l-4 border-l-blue-600">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <PlusCircle className="h-5 w-5 text-blue-600" />
-              <span>Register Verified Manufacturer Product</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
-                <input 
-                  type="text" 
-                  value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
-                  placeholder="e.g. Electric Vehicle X"
-                  className="w-full px-4 py-2 border rounded-lg outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Base Price (INR)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2 text-gray-500">₹</span>
-                  <input 
-                    type="number" 
-                    min="1"
-                    placeholder="e.g. 50000"
-                    value={productPriceINR}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === '' || parseFloat(val) >= 0) setProductPriceINR(val);
-                    }}
-                    className="w-full pl-8 pr-4 py-2 border rounded-lg outline-none"
-                  />
-                </div>
-                {productPriceINR && parseFloat(productPriceINR) > 0 && (
-                  <p className="text-[10px] text-blue-600 mt-1">
-                    Blockchain: <span className="font-bold">{getEthFromINR(productPriceINR)} ETH</span>
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Carbon Emission (g CO2)</label>
-                <input 
-                  type="number" 
-                  min="0"
-                  value={productEmission}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === '' || parseInt(val) >= 0) setProductEmission(val);
-                  }}
-                  placeholder="e.g. 50"
-                  className="w-full px-4 py-2 border rounded-lg outline-none"
-                />
-              </div>
+        <Card className="border-l-4 border-l-blue-600 shadow-lg">
+          <CardHeader><CardTitle className="flex items-center space-x-2"><Leaf className="h-5 w-5 text-blue-600" /><span>Register Product</span></CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <input type="text" placeholder="Product Name" value={productName} onChange={(e) => setProductName(e.target.value)} className="w-full px-4 py-2 border rounded-lg outline-none" />
+            <div className="relative">
+              <span className="absolute left-3 top-2 text-gray-500">₹</span>
+              <input type="number" min="1" placeholder="Price (INR)" value={productPriceINR} onChange={(e) => setProductPriceINR(e.target.value)} className="w-full pl-8 pr-4 py-2 border rounded-lg outline-none" />
             </div>
-            <Button 
-              onClick={handleAddProduct} 
-              disabled={isAddingProduct}
-              className="mt-6 w-full md:w-auto px-12"
-            >
-              {isAddingProduct ? 'Registering...' : 'Register Product on Blockchain'}
-            </Button>
+            <input type="number" min="0" placeholder="CO2 Emission (g)" value={productEmission} onChange={(e) => setProductEmission(e.target.value)} className="w-full px-4 py-2 border rounded-lg outline-none" />
+            <Button onClick={handleAddProduct} disabled={isAddingProduct} className="w-full bg-blue-600">{isAddingProduct ? 'Registering...' : 'Register as Manufacturer'}</Button>
           </CardContent>
         </Card>
       </div>
@@ -328,7 +308,7 @@ export function AdminDashboard() {
         <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
         <div>
           <p className="text-sm text-amber-800 font-bold">Government Authorization Required</p>
-          <p className="text-xs text-amber-700">These actions are restricted. Only the authorized government cryptographic key can execute these commands on the Ethereum network.</p>
+          <p className="text-xs text-amber-700">Only the authorized government cryptographic key can execute these commands.</p>
         </div>
       </div>
     </div>
