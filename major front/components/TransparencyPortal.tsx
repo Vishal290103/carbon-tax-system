@@ -33,7 +33,6 @@ interface Project {
 
 export function TransparencyPortal() {
   const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'projects' | 'validators'>('overview');
-  const [_transactions, setTransactions] = useState<Transaction[]>([]);
   const [inrTransactions, setInrTransactions] = useState<INRTransaction[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [totalStats, setTotalStats] = useState({
@@ -186,24 +185,6 @@ export function TransparencyPortal() {
     // For INR transactions, amount is already in INR
     return paymentService.formatINR(amount);
   };
-  
-  /*
-  const _formatEthCurrency = (amount: number) => {
-    // Convert ETH amount to INR for display (for blockchain transactions)
-    const inrAmount = paymentService.convertEthToINR(amount);
-    return paymentService.formatINR(inrAmount);
-  };
-
-  const _formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-  */
 
   const getTransactionIcon = (_productId: number) => {
     // This is a placeholder. You might want to have a way to get the product category.

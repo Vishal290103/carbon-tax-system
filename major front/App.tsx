@@ -130,19 +130,7 @@ export default function App() {
     setShowPurchaseModal(true);
   };
 
-  const handlePurchaseComplete = async () => {
-    await loadBalances();
-    await loadSystemStats();
-    await loadProducts(); // Refresh products in case anything changed
-    setShowPurchaseModal(false);
-    setSelectedProduct(null);
-    
-    // Force a re-render to update transparency portal
-    window.dispatchEvent(new CustomEvent('transactionCompleted'));
-  };
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  const formatAddress = (address: string) => {    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   const formatNumber = (value: string | number, decimals: number = 2) => {
@@ -428,7 +416,6 @@ export default function App() {
           setShowPurchaseModal(false);
           setSelectedProduct(null);
         }}
-        onPurchaseComplete={handlePurchaseComplete}
       />
       
       {/* Toast notifications */}

@@ -408,7 +408,6 @@ export function ValidatorDashboard() {
               <div className="mt-4">
                 <MockTokenFaucet 
                   onTokensReceived={handleDemoTokens} 
-                  currentBalance={getDisplayTokenBalance()}
                 />
               </div>
             </div>

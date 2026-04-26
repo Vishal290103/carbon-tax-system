@@ -32,7 +32,6 @@ interface ProductPurchaseModalProps {
   product: Product | null;
   isOpen: boolean;
   onClose: () => void;
-  onPurchaseComplete?: () => void;
 }
 
 export function ProductPurchaseModal({ 
