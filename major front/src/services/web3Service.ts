@@ -362,15 +362,12 @@ export class Web3Service {
       }
 
       // Execute symbolic purchase on blockchain for transparency
-      // We use explicit encoding to ensure the data payload is never empty
-      console.log(`Preparing blockchain transaction for product ${productId}...`);
+      // We send 0.001 ETH which is 100x the symbolic price (0.00001) 
+      // to ensure it always covers the 5% carbon tax required by the contract.
+      console.log(`Executing blockchain purchase for product ${productId}...`);
       
-      const data = this.contract.interface.encodeFunctionData('purchaseProduct', [productId]);
-      
-      const tx = await this.signer!.sendTransaction({
-        to: await this.contract.getAddress(),
-        data: data,
-        value: symbolicAmountInWei,
+      const tx = await this.contract.purchaseProduct(productId, { 
+        value: ethers.parseEther('0.001'),
         gasLimit: 500000 
       });
 
