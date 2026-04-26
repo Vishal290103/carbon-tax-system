@@ -6,9 +6,16 @@ async function main() {
     console.log("Starting deployment of CarbonTaxSystem...");
 
     // Get deployer account
-    const [deployer, governmentWallet] = await ethers.getSigners();
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const governmentWallet = signers.length > 1 ? signers[1] : signers[0];
+    
     console.log("Deploying contracts with the account:", deployer.address);
-    console.log("Government wallet address:", governmentWallet.address);
+    if (signers.length > 1) {
+        console.log("Government wallet address:", governmentWallet.address);
+    } else {
+        console.log("Using the same account for Government wallet:", governmentWallet.address);
+    }
     console.log("Account balance:", (await ethers.provider.getBalance(deployer.address)).toString());
 
     // Deploy the contract

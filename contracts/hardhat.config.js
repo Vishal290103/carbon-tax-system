@@ -18,15 +18,15 @@ module.exports = {
       url: "http://127.0.0.1:8545/",
       chainId: 31337,
     },
-    /* sepolia: {
+    sepolia: {
       url: SEPOLIA_RPC_URL,
-      accounts: [`0x${PRIVATE_KEY}`],
+      accounts: [PRIVATE_KEY],
       chainId: 11155111,
-    }, */
+    },
   },
-  /* etherscan: {
+  etherscan: {
     apiKey: ETHERSCAN_API_KEY,
-  }, */
+  },
   gasReporter: {
     enabled: true,
     currency: 'USD',

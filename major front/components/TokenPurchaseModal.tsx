@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { web3Service } from '../src/services/web3Service';
+import { BLOCKCHAIN_API_URL } from '../src/config';
 import { X, Coins, DollarSign, Info, AlertTriangle, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -39,7 +40,7 @@ export function TokenPurchaseModal({ isOpen, onClose, onPurchaseComplete }: Toke
 
   const loadExchangeRate = async () => {
     try {
-      const response = await fetch('http://localhost:8081/api/blockchain/tokens/exchange-rate');
+      const response = await fetch(`${BLOCKCHAIN_API_URL}/tokens/exchange-rate');
       const data = await response.json();
       if (data.success) {
         setExchangeRate(data);
@@ -130,7 +131,7 @@ export function TokenPurchaseModal({ isOpen, onClose, onPurchaseComplete }: Toke
     
     try {
       // First try the backend API approach with validation
-      const response = await fetch('http://localhost:8081/api/blockchain/tokens/buy', {
+      const response = await fetch(`${BLOCKCHAIN_API_URL}/tokens/buy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

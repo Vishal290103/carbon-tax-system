@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { toast } from 'react-hot-toast';
+import { BLOCKCHAIN_API_URL } from '../config';
 
 // Extend Window interface to include ethereum
 declare global {
@@ -632,7 +633,7 @@ export class Web3Service {
   }
 
   // Backend API Integration Methods for Validator System
-  private readonly BACKEND_URL = 'http://localhost:8081/api/blockchain';
+  private readonly BACKEND_URL = BLOCKCHAIN_API_URL;
 
   /**
    * Get validator information from backend with validation
