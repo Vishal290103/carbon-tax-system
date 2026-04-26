@@ -77,9 +77,37 @@ export function AdminDashboard() {
 
     setIsAddingProduct(true);
     try {
+      // 1. First register on the Blockchain
       const success = await web3Service.addProduct(productName, ethPrice, parseInt(productEmission));
+      
       if (success) {
-        toast.success(`'${productName}' registered on Blockchain with price ₹${productPriceINR}!`);
+        // 2. Then save to the Backend Database (Render) so it shows on the Home Page
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/products`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: productName,
+              price: parseFloat(productPriceINR),
+              tax: parseFloat(productPriceINR) * 0.05, // Estimate 5% tax
+              category: 'General',
+              manufacturer: web3Service.getUserAddress(),
+              image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1999&auto=format&fit=crop'
+            }),
+          });
+          
+          if (response.ok) {
+            toast.success(`'${productName}' is now LIVE on the Home Page and Blockchain!`);
+          } else {
+            console.error('Failed to sync to database');
+            toast.error('Registered on blockchain, but failed to show on home page. Please refresh.');
+          }
+        } catch (dbError) {
+          console.error('Database sync error:', dbError);
+        }
+
         setProductName('');
         setProductPriceINR('');
         setProductEmission('');
