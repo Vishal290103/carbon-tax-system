@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { web3Service } from '../src/services/web3Service';
 import { Button } from './ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import { Settings, PlusCircle, Landmark, AlertTriangle, RefreshCcw, Info, Leaf } from 'lucide-react';
+import { Settings, PlusCircle, Landmark, AlertTriangle, RefreshCcw, Leaf } from 'lucide-react';
 import { API_BASE_URL } from '../src/config';
 import toast from 'react-hot-toast';
 
