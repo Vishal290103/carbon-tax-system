@@ -3,7 +3,7 @@ import { web3Service, SystemStats } from './src/services/web3Service';
 import { paymentService } from './src/services/paymentService';
 import { localTransactionService } from './src/services/localTransactionService';
 import { API_BASE_URL } from './src/config';
-import { Wallet, ShoppingCart, Coins, TrendingUp, Leaf, Shield, BarChart3, Calculator, Eye } from 'lucide-react';
+import { Wallet, ShoppingCart, Coins, TrendingUp, Leaf, Shield, BarChart3, Calculator, Eye, Landmark } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 
 // Import new components
@@ -14,6 +14,7 @@ import { ProductPurchaseModal } from './components/ProductPurchaseModal';
 import { TransactionGuide } from './components/TransactionGuide';
 import { EthRequirement } from './components/EthRequirement';
 import { ValidatorDashboard } from './components/ValidatorDashboard';
+import { AdminDashboard } from './components/AdminDashboard';
 
 interface Product {
   id: number;
@@ -33,11 +34,12 @@ export default function App() {
   const [ethBalance, setEthBalance] = useState<string>('0');
   const [tokenBalance, setTokenBalance] = useState<string>('0');
   const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'products' | 'validator' | 'transparency' | 'calculator' | 'wallet'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'products' | 'validator' | 'transparency' | 'calculator' | 'wallet' | 'admin'>('home');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [isGovernment, setIsGovernment] = useState(false);
 
   useEffect(() => {
     initializeApp();
@@ -61,8 +63,14 @@ export default function App() {
 
   const checkWalletConnection = async () => {
     if (web3Service.isConnected()) {
+      const address = web3Service.getUserAddress();
       setIsWalletConnected(true);
-      setUserAddress(web3Service.getUserAddress());
+      setUserAddress(address);
+      
+      // Check if user is government
+      const govWallet = '0xAe0F7A93063e42A8F85809a1C4890074e329Ef78';
+      setIsGovernment(address.toLowerCase() === govWallet.toLowerCase());
+      
       await loadBalances();
     }
   };
@@ -167,6 +175,11 @@ export default function App() {
     if (address) {
       setIsWalletConnected(true);
       setUserAddress(address);
+      
+      // Check if user is government
+      const govWallet = '0xAe0F7A93063e42A8F85809a1C4890074e329Ef78';
+      setIsGovernment(address.toLowerCase() === govWallet.toLowerCase());
+      
       await loadBalances();
     }
   };
@@ -174,6 +187,7 @@ export default function App() {
   const handleDisconnectWallet = () => {
     web3Service.disconnect();
     setIsWalletConnected(false);
+    setIsGovernment(false);
     setUserAddress('');
     setEthBalance('0');
     setTokenBalance('0');
@@ -245,7 +259,8 @@ export default function App() {
               { id: 'calculator', label: 'Carbon Calculator', icon: Calculator },
               { id: 'validator', label: 'Validator', icon: Shield },
               { id: 'transparency', label: 'Transparency', icon: Eye },
-              { id: 'wallet', label: 'Wallet', icon: Wallet }
+              { id: 'wallet', label: 'Wallet', icon: Wallet },
+              ...(isGovernment ? [{ id: 'admin', label: 'Admin', icon: Landmark }] : [])
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -453,6 +468,9 @@ export default function App() {
 
         {/* Transparency View */}
         {currentView === 'transparency' && <TransparencyPortal />}
+
+        {/* Admin View */}
+        {currentView === 'admin' && <AdminDashboard />}
 
         {/* Wallet View */}
         {currentView === 'wallet' && (
