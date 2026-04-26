@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { web3Service, SystemStats } from './src/services/web3Service';
 import { paymentService } from './src/services/paymentService';
+import { localTransactionService } from './src/services/localTransactionService';
 import { API_BASE_URL } from './src/config';
 import { Wallet, ShoppingCart, Coins, TrendingUp, Leaf, Shield, BarChart3, Calculator, Eye } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
@@ -73,6 +74,18 @@ export default function App() {
   const loadSystemStats = async () => {
     try {
       const stats = await web3Service.getSystemStats();
+      const localStats = localTransactionService.getTransactionStats();
+      
+      if (stats) {
+        // Combine blockchain tax and local INR tax
+        const blockchainTaxINR = paymentService.convertEthToINR(parseFloat(stats.totalTaxCollected));
+        const totalTaxINR = blockchainTaxINR + localStats.totalCarbonTaxINR;
+        
+        // We temporarily store the combined tax back into totalTaxCollected for display
+        // but we convert it back to ETH units so the formatINR(convertEthToINR(...)) logic works
+        stats.totalTaxCollected = (totalTaxINR / 200000).toString();
+      }
+      
       setSystemStats(stats);
     } catch (error) {
       console.error('Error loading system stats:', error);
